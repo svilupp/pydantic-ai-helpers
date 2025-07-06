@@ -198,11 +198,16 @@ if system_prompt and "helpful" in system_prompt.content:
 ### Multi-turn Conversation Analysis
 
 ```python
-result = agent.run_sync([
+messages = []
+topics = [
     "What's the weather in London?",
     "How about Paris?",
     "Which city is warmer?"
-])
+]
+
+for topic in topics:
+    result = agent.run_sync(topic, message_history=messages)
+    messages = result.all_messages()
 
 hist = History(result)
 
@@ -254,7 +259,7 @@ from pydantic_ai import Agent
 from pydantic_ai.messages import ModelMessagesTypeAdapter  
 
 # Save a conversation
-agent = Agent('openai:gpt-4o')
+agent = Agent('openai:gpt-4.1-mini')
 result = agent.run_sync('Tell me a joke.')
 messages = result.all_messages()
 

@@ -9,7 +9,7 @@ from pydantic_ai_helpers import History
 
 def conversation_analysis():
     """Analyze conversation patterns and metrics."""
-    agent = Agent("openai:gpt-4o-mini")
+    agent = Agent("openai:gpt-4.1-mini")
 
     # Simulate a longer conversation
     messages = []
@@ -55,7 +55,7 @@ def tool_retry_pattern():
 
         return f"Success! The number is {number * 2}"
 
-    agent = Agent("openai:gpt-4o-mini", tools=[Tool(flaky_tool)], retries=3)
+    agent = Agent("openai:gpt-4.1-mini", tools=[Tool(flaky_tool)], retries=3)
 
     result = agent.run_sync("Call the flaky tool with number 42")
     hist = History(result)
@@ -110,12 +110,12 @@ def cost_tracking():
     """Track and estimate API costs."""
     # Approximate costs per 1K tokens (example rates)
     COSTS_PER_1K = {
-        "gpt-4o": {"input": 0.005, "output": 0.015},
-        "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
+        "gpt-4.1": {"input": 0.005, "output": 0.015},
+        "gpt-4.1-mini": {"input": 0.00015, "output": 0.0006},
         "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
     }
 
-    model = "gpt-4o-mini"
+    model = "gpt-4.1-mini"
     agent = Agent(f"openai:{model}")
 
     # Run some queries
@@ -222,7 +222,7 @@ def conversation_summarization():
 
     # Use another agent to summarize the conversation
     summarizer = Agent(
-        "openai:gpt-4o-mini",
+        "openai:gpt-4.1-mini",
         system_prompt="You are a conversation summarizer. Create concise summaries.",
     )
 
