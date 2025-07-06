@@ -1,6 +1,8 @@
 """Basic usage examples for pydantic-ai-utils."""
 
-from pydantic_ai import Agent
+import asyncio
+
+from pydantic_ai import Agent, Tool
 
 from pydantic_ai_helpers import History
 
@@ -44,8 +46,6 @@ def multi_turn_conversation():
 
 def tool_usage_example():
     """Run an example with tool usage."""
-    from pydantic_ai import Tool
-
     # Define a simple tool
     def get_weather(city: str) -> str:
         """Get weather for a city."""
@@ -78,8 +78,6 @@ def tool_usage_example():
 
 def streaming_example():
     """Run an example with streaming responses."""
-    import asyncio
-
     async def stream_story():
         agent = Agent("openai:gpt-4.1-mini")
 

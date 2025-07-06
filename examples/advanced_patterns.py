@@ -1,8 +1,12 @@
 """Advanced usage patterns for pydantic-ai-utils."""
 
+import asyncio
 import json
+import time
 
 from pydantic_ai import Agent, ModelRetry, Tool
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+from pydantic_core import to_jsonable_python
 
 from pydantic_ai_helpers import History
 
@@ -78,9 +82,6 @@ def tool_retry_pattern():
 
 def conversation_persistence():
     """Save and restore conversation state."""
-    from pydantic_ai.messages import ModelMessagesTypeAdapter
-    from pydantic_core import to_jsonable_python
-
     agent = Agent("openai:gpt-4o-mini")
 
     # Initial conversation
@@ -155,9 +156,6 @@ def cost_tracking():
 
 def parallel_tool_execution():
     """Analyze parallel tool execution patterns."""
-    import asyncio
-    import time
-
     async def slow_tool_a(x: int) -> str:
         await asyncio.sleep(1)  # Simulate slow API
         return f"Tool A result: {x * 2}"

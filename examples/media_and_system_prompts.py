@@ -165,8 +165,6 @@ def analyze_conversation(messages):  # noqa: PLR0912, PLR0915
         print(f"💾 Binary-only images: {len(binary_images)}")
 
     # By type filtering
-    from pydantic_ai.messages import BinaryContent, ImageUrl
-
     image_urls = hist.media.by_type(ImageUrl)
     binary_content = hist.media.by_type(BinaryContent)
 
