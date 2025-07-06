@@ -6,9 +6,9 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/pydantic-ai-helpers.svg)](https://pypi.org/project/pydantic-ai-helpers/)
 [![Python versions](https://img.shields.io/pypi/pyversions/pydantic-ai-helpers.svg)](https://pypi.org/project/pydantic-ai-helpers/)
-[![CI status](https://github.com/yourusername/pydantic-ai-helpers/workflows/CI/badge.svg)](https://github.com/yourusername/pydantic-ai-helpers/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/yourusername/pydantic-ai-helpers)](https://codecov.io/gh/yourusername/pydantic-ai-helpers)
-[![License](https://img.shields.io/pypi/l/pydantic-ai-helpers.svg)](https://github.com/yourusername/pydantic-ai-helpers/blob/main/LICENSE)
+[![CI status](https://github.com/svilupp/pydantic-ai-helpers/workflows/CI/badge.svg)](https://github.com/svilupp/pydantic-ai-helpers/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/svilupp/pydantic-ai-helpers)](https://codecov.io/gh/svilupp/pydantic-ai-helpers)
+[![License](https://img.shields.io/pypi/l/pydantic-ai-helpers.svg)](https://github.com/svilupp/pydantic-ai-helpers/blob/main/LICENSE)
 
 ## The Problem
 
