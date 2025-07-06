@@ -1,13 +1,15 @@
 """Basic usage examples for pydantic-ai-utils."""
 
-from pydantic_ai import Agent
+import asyncio
+
+from pydantic_ai import Agent, Tool
 
 from pydantic_ai_helpers import History
 
 
 def simple_conversation():
-    """Basic conversation example."""
-    agent = Agent("openai:gpt-4o-mini", system_prompt="You are a helpful assistant.")
+    """Run a basic conversation example."""
+    agent = Agent("openai:gpt-4.1-mini", system_prompt="You are a helpful assistant.")
 
     # Run a simple query
     result = agent.run_sync("What is the capital of France?")
@@ -23,7 +25,7 @@ def simple_conversation():
 
 def multi_turn_conversation():
     """Multi-turn conversation example."""
-    agent = Agent("openai:gpt-4o-mini")
+    agent = Agent("openai:gpt-4.1-mini")
 
     # Start conversation
     result = agent.run_sync("My name is Alice")
@@ -43,8 +45,7 @@ def multi_turn_conversation():
 
 
 def tool_usage_example():
-    """Example with tool usage."""
-    from pydantic_ai import Tool
+    """Run an example with tool usage."""
 
     # Define a simple tool
     def get_weather(city: str) -> str:
@@ -58,7 +59,7 @@ def tool_usage_example():
         return weather_data.get(city, "Unknown city")
 
     # Create agent with tool
-    agent = Agent("openai:gpt-4o-mini", tools=[Tool(get_weather)])
+    agent = Agent("openai:gpt-4.1-mini", tools=[Tool(get_weather)])
 
     # Run query that uses tool
     result = agent.run_sync("What's the weather in London and Paris?")
@@ -77,11 +78,10 @@ def tool_usage_example():
 
 
 def streaming_example():
-    """Example with streaming responses."""
-    import asyncio
+    """Run an example with streaming responses."""
 
     async def stream_story():
-        agent = Agent("openai:gpt-4o-mini")
+        agent = Agent("openai:gpt-4.1-mini")
 
         async with agent.run_stream("Tell me a very short story") as result:
             print("Streaming: ", end="")

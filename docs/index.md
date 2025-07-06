@@ -7,8 +7,6 @@
 [![PyPI version](https://img.shields.io/pypi/v/pydantic-ai-helpers.svg)](https://pypi.org/project/pydantic-ai-helpers/)
 [![Python versions](https://img.shields.io/pypi/pyversions/pydantic-ai-helpers.svg)](https://pypi.org/project/pydantic-ai-helpers/)
 [![CI status](https://github.com/yourusername/pydantic-ai-helpers/workflows/CI/badge.svg)](https://github.com/yourusername/pydantic-ai-helpers/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/yourusername/pydantic-ai-helpers)](https://codecov.io/gh/yourusername/pydantic-ai-helpers)
-[![License](https://img.shields.io/pypi/l/pydantic-ai-helpers.svg)](https://github.com/yourusername/pydantic-ai-helpers/blob/main/LICENSE)
 
 ## The Problem
 
@@ -58,9 +56,14 @@ The best part? Your IDE will help you with the suggestions for the available met
 ## Installation
 
 ```bash
+pip install pydantic-ai-helpers
+```
+
+Or with your favorite package manager:
+
+```bash
+poetry add pydantic-ai-helpers
 uv add pydantic-ai-helpers
-# pip install pydantic-ai-helpers
-# poetry add pydantic-ai-helpers
 ```
 
 ## Quick Start
@@ -70,7 +73,7 @@ from pydantic_ai import Agent
 from pydantic_ai_helpers import History
 # or: import pydantic_ai_helpers as ph
 
-agent = Agent("openai:gpt-4.1-mini")
+agent = Agent("openai:gpt-4.1")
 result = agent.run_sync("Tell me a joke")
 
 # Wrap once, access everything
@@ -97,189 +100,221 @@ if images:
     print(f"Found {len(images)} images in conversation")
 ```
 
-## Common Use Cases
-
-### Extract What You Need for Your App
-
-```python
-hist = History(result)
-
-# Update your UI with the latest tool status
-if latest_call := hist.tools.calls().last():
-    update_ui_status(f"Called {latest_call.tool_name}...")
-
-# Get conversation context for logging
-user_query = hist.user.last().content
-ai_response = hist.ai.last().content
-log_conversation(user_query, ai_response)
-
-# Check token costs for billing
-total_cost = hist.usage().total_tokens * your_token_rate
-```
-
-### Debug Tool Workflows
-
-```python
-# See what tools were actually called
-for call in hist.tools.calls().all():
-    print(f"Called {call.tool_name} with {call.args}")
-
-# Check what came back
-for ret in hist.tools.returns().all():
-    print(f"{ret.tool_name} returned: {ret.content}")
-    if ret.metadata:  # Your evaluation metadata
-        print(f"Metadata: {ret.metadata}")
-```
-
-### Analyze Conversations
-
-```python
-# Count interactions
-print(f"User asked {len(hist.user.all())} questions")
-print(f"AI made {len(hist.tools.calls().all())} tool calls")
-print(f"Total tokens: {hist.usage().total_tokens}")
-
-# Get specific tool results for processing
-weather_results = hist.tools.returns(name="get_weather").all()
-for result in weather_results:
-    process_weather_data(result.content)
-```
-
-### Work with Media Content
-
-```python
-# Access all media content
-all_media = hist.media.all()
-print(f"Found {len(all_media)} media items")
-
-# Get specific media types
-images = hist.media.images()          # All images (URLs + binary)
-audio = hist.media.audio()            # All audio files
-documents = hist.media.documents()    # All documents
-videos = hist.media.videos()          # All videos
-
-# Filter by storage type
-url_images = hist.media.images(url_only=True)     # Only ImageUrl objects
-binary_images = hist.media.images(binary_only=True) # Only binary images
-
-# Get the most recent media
-latest_media = hist.media.last()
-if latest_media:
-    print(f"Latest media: {type(latest_media).__name__}")
-
-# Filter by exact type
-from pydantic_ai.messages import ImageUrl, BinaryContent
-image_urls = hist.media.by_type(ImageUrl)
-binary_content = hist.media.by_type(BinaryContent)
-```
-
-### Access System Prompts
-
-```python
-# Get the system prompt (if any)
-system_prompt = hist.system_prompt()
-if system_prompt:
-    print(f"System prompt: {system_prompt.content}")
-else:
-    print("No system prompt found")
-
-# Use in analysis
-if system_prompt and "helpful" in system_prompt.content:
-    print("This agent was configured to be helpful")
-```
-
 ## Examples
 
-### Multi-turn Conversation Analysis
+### Basic Usage
 
 ```python
-messages = []
-topics = [
-    "What's the weather in London?",
-    "How about Paris?",
-    "Which city is warmer?"
-]
+from pydantic_ai import Agent
+from pydantic_ai_helpers import History
 
-for topic in topics:
-    result = agent.run_sync(topic, message_history=messages)
-    messages = result.all_messages()
+def simple_conversation():
+    """Basic conversation example."""
+    agent = Agent("openai:gpt-4.1-mini", system_prompt="You are a helpful assistant.")
 
-hist = History(result)
+    # Run a simple query
+    result = agent.run_sync("What is the capital of France?")
 
-# Analyze the conversation flow
-print(f"User asked {len(hist.user.all())} questions")
-print(f"AI responded {len(hist.ai.all())} times")
-print(f"Made {len(hist.tools.calls())} tool calls")
+    # Wrap with History
+    hist = History(result)
 
-# Get specific information
-london_weather = hist.tools.returns(name="get_weather").all()[0]
-paris_weather = hist.tools.returns(name="get_weather").all()[1]
+    # Access messages
+    print(f"User asked: {hist.user.last().content}")
+    print(f"AI responded: {hist.ai.last().content}")
+    print(f"Tokens used: {hist.usage().total_tokens}")
 ```
 
-### Dice Game with Tools
+### Multi-turn Conversations
 
 ```python
-# From the PydanticAI tutorial
-result = agent.run_sync("Roll a dice")
+def multi_turn_conversation():
+    """Multi-turn conversation example."""
+    agent = Agent("openai:gpt-4.1-mini")
 
-hist = History(result)
+    # Start conversation
+    result = agent.run_sync("My name is Alice")
+    hist = History(result)
 
-# Find what the dice rolled
-dice_result = hist.tools.returns(name="roll_dice").last()
-print(f"Dice rolled: {dice_result.content}")
+    # Continue conversation
+    result = agent.run_sync("What's my name?", message_history=hist.all_messages())
+    hist = History(result)
 
-# See how the AI responded
-ai_message = hist.ai.last()
-print(f"AI said: {ai_message.content}")
+    # Analyze the conversation
+    print(f"Total exchanges: {len(hist.user.all())}")
+    print("Conversation flow:")
+    for i, (user, ai) in enumerate(zip(hist.user.all(), hist.ai.all(), strict=False)):
+        print(f"  Turn {i + 1}:")
+        print(f"    User: {user.content}")
+        print(f"    AI: {ai.content}")
+```
+
+### Tool Usage Analysis
+
+```python
+from pydantic_ai import Tool
+
+def tool_usage_example():
+    """Example with tool usage."""
+    # Define a simple tool
+    def get_weather(city: str) -> str:
+        """Get weather for a city."""
+        weather_data = {
+            "London": "Cloudy, 15°C",
+            "Paris": "Sunny, 22°C",
+            "Tokyo": "Rainy, 18°C",
+        }
+        return weather_data.get(city, "Unknown city")
+
+    # Create agent with tool
+    agent = Agent("openai:gpt-4.1-mini", tools=[Tool(get_weather)])
+
+    # Run query that uses tool
+    result = agent.run_sync("What's the weather in London and Paris?")
+    hist = History(result)
+
+    # Analyze tool usage
+    print(f"Tool calls made: {len(hist.tools.calls().all())}")
+
+    for call in hist.tools.calls().all():
+        print(f"  Called {call.tool_name} with args: {call.args}")
+
+    for ret in hist.tools.returns().all():
+        print(f"  {ret.tool_name} returned: {ret.content}")
+
+    print(f"\nFinal response: {hist.ai.last().content}")
+```
+
+### Working with Media Content
+
+```python
+def media_analysis_example():
+    """Example showing media content extraction."""
+    # Assuming you have a conversation with media content
+    hist = History(result)
+    
+    # Access all media content
+    all_media = hist.media.all()
+    print(f"Found {len(all_media)} media items")
+
+    # Get specific media types
+    images = hist.media.images()          # All images (URLs + binary)
+    audio = hist.media.audio()            # All audio files
+    documents = hist.media.documents()    # All documents
+    videos = hist.media.videos()          # All videos
+
+    # Filter by storage type
+    url_images = hist.media.images(url_only=True)     # Only ImageUrl objects
+    binary_images = hist.media.images(binary_only=True) # Only binary images
+
+    # Get the most recent media
+    latest_media = hist.media.last()
+    if latest_media:
+        print(f"Latest media: {type(latest_media).__name__}")
+
+    # Filter by exact type
+    from pydantic_ai.messages import ImageUrl, BinaryContent
+    image_urls = hist.media.by_type(ImageUrl)
+    binary_content = hist.media.by_type(BinaryContent)
 ```
 
 ### Streaming Support
 
 ```python
-async with agent.run_stream("Tell me a story") as result:
-    async for chunk in result.stream():
-        print(chunk, end="")
-    
-    # After streaming completes
-    hist = History(result)
-    print(f"\nTotal tokens: {hist.tokens().total_tokens}")
+async def streaming_example():
+    """Example with streaming responses."""
+    agent = Agent("openai:gpt-4.1-mini")
+
+    async with agent.run_stream("Tell me a very short story") as result:
+        print("Streaming: ", end="")
+        async for chunk in result.stream():
+            print(chunk, end="", flush=True)
+        print()  # newline
+
+        # After streaming, analyze with History
+        hist = History(result)
+        print(f"\nTotal tokens: {hist.usage().total_tokens}")
+        print(f"Response tokens: {hist.usage().response_tokens}")
 ```
 
-### Loading from Serialized Conversations
+### Advanced Patterns
+
+#### Conversation Persistence
 
 ```python
-import json
-from pydantic_core import to_jsonable_python
-from pydantic_ai import Agent
-from pydantic_ai.messages import ModelMessagesTypeAdapter  
+def conversation_persistence():
+    """Save and restore conversation state."""
+    from pydantic_ai.messages import ModelMessagesTypeAdapter
+    from pydantic_core import to_jsonable_python
+    import json
 
-# Save a conversation
-agent = Agent('openai:gpt-4.1-mini')
-result = agent.run_sync('Tell me a joke.')
-messages = result.all_messages()
+    agent = Agent("openai:gpt-4o-mini")
 
-# Serialize to file
-with open('conversation.json', 'w') as f:
-    json.dump(to_jsonable_python(messages), f)
+    # Initial conversation
+    result = agent.run_sync("Remember that my favorite color is blue")
+    hist = History(result)
 
-# Later, load it back
-hist = History('conversation.json')
-print(hist)  # History(1 turn, 50 tokens)
-print(hist.user.last().content)  # "Tell me a joke."
-print(hist.ai.last().content)    # The joke response
+    # Save conversation state
+    saved_messages = to_jsonable_python(hist.all_messages())
+    with open("conversation_state.json", "w") as f:
+        json.dump(saved_messages, f)
 
-# Or use Path objects
-from pathlib import Path
-hist = History(Path('conversation.json'))
+    # Load conversation state
+    with open("conversation_state.json") as f:
+        loaded_data = json.load(f)
 
-# Continue the conversation with loaded history
-same_messages = ModelMessagesTypeAdapter.validate_python(
-    to_jsonable_python(hist.all_messages())
-)
-result2 = agent.run_sync(
-    'Tell me a different joke.', 
-    message_history=same_messages
-)
+    restored_messages = ModelMessagesTypeAdapter.validate_python(loaded_data)
+
+    # Continue conversation
+    result = agent.run_sync(
+        "What's my favorite color?", message_history=restored_messages
+    )
+
+    hist = History(result)
+    print(f"AI remembers: {hist.ai.last().content}")
+```
+
+#### Cost Tracking
+
+```python
+def cost_tracking():
+    """Track and estimate API costs."""
+    # Approximate costs per 1K tokens (example rates)
+    COSTS_PER_1K = {
+        "gpt-4.1": {"input": 0.005, "output": 0.015},
+        "gpt-4.1-mini": {"input": 0.00015, "output": 0.0006},
+    }
+
+    model = "gpt-4.1-mini"
+    agent = Agent(f"openai:{model}")
+
+    # Run some queries
+    queries = [
+        "Explain quantum computing in one sentence",
+        "Now explain it like I'm five",
+        "What are practical applications?",
+    ]
+
+    total_cost = 0.0
+    messages = []
+
+    for query in queries:
+        result = agent.run_sync(query, message_history=messages)
+        messages = result.all_messages()
+        hist = History(result)
+
+        # Calculate cost for this exchange
+        usage = hist.usage()
+        if usage.request_tokens and usage.response_tokens:
+            input_cost = (usage.request_tokens / 1000) * COSTS_PER_1K[model]["input"]
+            output_cost = (usage.response_tokens / 1000) * COSTS_PER_1K[model]["output"]
+            query_cost = input_cost + output_cost
+            total_cost += query_cost
+
+            print(f"Query: '{query[:30]}...'")
+            print(f"  Tokens: {usage.request_tokens} in, {usage.response_tokens} out")
+            print(f"  Cost: ${query_cost:.4f}")
+
+    print(f"\nTotal cost for conversation: ${total_cost:.4f}")
 ```
 
 ## API Reference
@@ -376,42 +411,6 @@ for user, ai in zip(user_inputs, ai_responses):
     print()
 ```
 
-### Work with Media Content
-
-```python
-# Check if conversation has images
-if hist.media.images():
-    print("This conversation contains images")
-    for img in hist.media.images():
-        if hasattr(img, 'url'):
-            print(f"Image URL: {img.url}")
-        else:
-            print(f"Binary image: {img.media_type}, {len(img.data)} bytes")
-
-# Process different media types
-for media_item in hist.media.all():
-    if isinstance(media_item, ImageUrl):
-        download_image(media_item.url)
-    elif isinstance(media_item, BinaryContent):
-        save_binary_content(media_item.data, media_item.media_type)
-```
-
-### Extract System Configuration
-
-```python
-# Check system prompt for agent behavior
-system_prompt = hist.system_prompt()
-if system_prompt:
-    if "helpful" in system_prompt.content.lower():
-        agent_type = "helpful_assistant"
-    elif "creative" in system_prompt.content.lower():
-        agent_type = "creative_writer"
-    else:
-        agent_type = "general_purpose"
-    
-    print(f"Agent type: {agent_type}")
-```
-
 ## Design Philosophy
 
 1. **Boring is Good** - No clever magic, just simple method calls
@@ -432,26 +431,6 @@ Found a bug? Want a feature? PRs welcome!
 6. Commit your changes (`git commit -m 'Add amazing feature'`)
 7. Push to the branch (`git push origin feature/amazing-feature`)
 8. Open a Pull Request
-
-## Development
-
-```bash
-# Clone the repo
-git clone https://github.com/yourusername/pydantic-ai-helpers.git
-cd pydantic-ai-helpers
-
-# Install in development mode
-make install
-
-# Run tests
-make test
-
-# Run linting
-make lint
-
-# Format code
-make format
-```
 
 ## License
 

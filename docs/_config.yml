@@ -1,0 +1,47 @@
+# GitHub Pages configuration for pydantic-ai-helpers documentation
+
+# Site settings
+title: pydantic-ai-helpers
+description: Boring, opinionated helpers for PydanticAI that are so dumb you didn't want to implement them
+url: "https://svilupp.github.io/pydantic-ai-helpers"
+baseurl: "/pydantic-ai-helpers"
+
+# Theme
+theme: minima
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Examples
+    url: /#examples
+  - title: API Reference
+    url: /#api-reference
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# Include
+include:
+  - _pages

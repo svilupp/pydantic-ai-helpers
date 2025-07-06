@@ -1,15 +1,19 @@
 """Advanced usage patterns for pydantic-ai-utils."""
 
+import asyncio
 import json
+import time
 
 from pydantic_ai import Agent, ModelRetry, Tool
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+from pydantic_core import to_jsonable_python
 
 from pydantic_ai_helpers import History
 
 
 def conversation_analysis():
     """Analyze conversation patterns and metrics."""
-    agent = Agent("openai:gpt-4o-mini")
+    agent = Agent("openai:gpt-4.1-mini")
 
     # Simulate a longer conversation
     messages = []
@@ -30,10 +34,13 @@ def conversation_analysis():
     print("Conversation Analysis:")
     print(f"  Total exchanges: {len(hist.user.all())}")
     print(
-        f"  Average user message length: {sum(len(m.content) for m in hist.user.all()) / len(hist.user.all()):.1f} chars"
+        f"  Average user message length: "
+        f"{sum(len(m.content) for m in hist.user.all()) / len(hist.user.all()):.1f}"
+        f" chars"
     )
     print(
-        f"  Average AI response length: {sum(len(m.content) for m in hist.ai.all()) / len(hist.ai.all()):.1f} chars"
+        f"  Average AI response length: "
+        f"{sum(len(m.content) for m in hist.ai.all()) / len(hist.ai.all()):.1f} chars"
     )
     print(f"  Total tokens used: {hist.usage().total_tokens}")
     print(
@@ -46,16 +53,17 @@ def tool_retry_pattern():
     call_count = 0
 
     def flaky_tool(number: int) -> str:
-        """A tool that sometimes fails."""
+        """Return a doubled number, sometimes fails."""
         nonlocal call_count
         call_count += 1
 
-        if call_count < 2:
+        min_calls = 2
+        if call_count < min_calls:
             raise ModelRetry("Service temporarily unavailable, please retry")
 
         return f"Success! The number is {number * 2}"
 
-    agent = Agent("openai:gpt-4o-mini", tools=[Tool(flaky_tool)], retries=3)
+    agent = Agent("openai:gpt-4.1-mini", tools=[Tool(flaky_tool)], retries=3)
 
     result = agent.run_sync("Call the flaky tool with number 42")
     hist = History(result)
@@ -66,16 +74,14 @@ def tool_retry_pattern():
 
     print(f"Tool was called {len(tool_calls)} times")
     print(
-        f"Successful returns: {len([r for r in tool_returns if 'Success' in r.content])}"
+        f"Successful returns: "
+        f"{len([r for r in tool_returns if 'Success' in r.content])}"
     )
     print(f"Final result: {hist.ai.last().content}")
 
 
 def conversation_persistence():
     """Save and restore conversation state."""
-    from pydantic_ai.messages import ModelMessagesTypeAdapter
-    from pydantic_core import to_jsonable_python
-
     agent = Agent("openai:gpt-4o-mini")
 
     # Initial conversation
@@ -110,12 +116,12 @@ def cost_tracking():
     """Track and estimate API costs."""
     # Approximate costs per 1K tokens (example rates)
     COSTS_PER_1K = {
-        "gpt-4o": {"input": 0.005, "output": 0.015},
-        "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
+        "gpt-4.1": {"input": 0.005, "output": 0.015},
+        "gpt-4.1-mini": {"input": 0.00015, "output": 0.0006},
         "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
     }
 
-    model = "gpt-4o-mini"
+    model = "gpt-4.1-mini"
     agent = Agent(f"openai:{model}")
 
     # Run some queries
@@ -150,8 +156,6 @@ def cost_tracking():
 
 def parallel_tool_execution():
     """Analyze parallel tool execution patterns."""
-    import asyncio
-    import time
 
     async def slow_tool_a(x: int) -> str:
         await asyncio.sleep(1)  # Simulate slow API
@@ -178,7 +182,8 @@ def parallel_tool_execution():
         tool_calls = hist.tools.calls().all()
         print(f"Executed {len(tool_calls)} tools in {elapsed:.2f} seconds")
 
-        if elapsed < 1.5:  # Should be ~1 second if parallel
+        parallel_threshold = 1.5
+        if elapsed < parallel_threshold:  # Should be ~1 second if parallel
             print("✓ Tools executed in parallel")
         else:
             print("✗ Tools executed sequentially")
@@ -186,7 +191,8 @@ def parallel_tool_execution():
         for call in tool_calls:
             return_val = hist.tools.returns(name=call.tool_name).last()
             print(
-                f"  {call.tool_name}: {return_val.content if return_val else 'No return'}"
+                f"  {call.tool_name}: "
+                f"{return_val.content if return_val else 'No return'}"
             )
 
     asyncio.run(analyze_parallel_execution())
@@ -222,7 +228,7 @@ def conversation_summarization():
 
     # Use another agent to summarize the conversation
     summarizer = Agent(
-        "openai:gpt-4o-mini",
+        "openai:gpt-4.1-mini",
         system_prompt="You are a conversation summarizer. Create concise summaries.",
     )
 
@@ -235,7 +241,8 @@ def conversation_summarization():
     )
 
     summary_result = summarizer.run_sync(
-        f"Summarize this conversation in 3 bullet points:\n\n{conversation_text[:2000]}..."
+        f"Summarize this conversation in 3 bullet points:\n\n"
+        f"{conversation_text[:2000]}..."
     )
 
     summary_hist = History(summary_result)

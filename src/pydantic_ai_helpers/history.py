@@ -335,16 +335,12 @@ def _extract_media_from_messages(messages: list[ModelMessage]) -> list[MediaCont
     for msg in messages:
         for part in msg.parts:
             if isinstance(part, UserPromptPart) and isinstance(part.content, list):
-                    for item in part.content:
-                        if isinstance(
-                            item,
-                            ImageUrl
-                            | AudioUrl
-                            | DocumentUrl
-                            | VideoUrl
-                            | BinaryContent,
-                        ):
-                            media_items.append(item)
+                for item in part.content:
+                    if isinstance(
+                        item,
+                        ImageUrl | AudioUrl | DocumentUrl | VideoUrl | BinaryContent,
+                    ):
+                        media_items.append(item)
 
     return media_items
 
@@ -425,7 +421,7 @@ class MediaView:
                 and item.media_type.startswith("image/")
                 and not url_only
             ):
-                    images.append(item)
+                images.append(item)
 
         return images
 
@@ -459,7 +455,7 @@ class MediaView:
                 and item.media_type.startswith("audio/")
                 and not url_only
             ):
-                    audio.append(item)
+                audio.append(item)
 
         return audio
 
@@ -488,10 +484,14 @@ class MediaView:
             if isinstance(item, DocumentUrl):
                 if not binary_only:
                     documents.append(item)
-            elif isinstance(item, BinaryContent) and (
-                item.media_type.startswith('application/') or
-                item.media_type.startswith('text/')
-            ) and not url_only:
+            elif (
+                isinstance(item, BinaryContent)
+                and (
+                    item.media_type.startswith("application/")
+                    or item.media_type.startswith("text/")
+                )
+                and not url_only
+            ):
                 documents.append(item)
 
         return documents
@@ -526,7 +526,7 @@ class MediaView:
                 and item.media_type.startswith("video/")
                 and not url_only
             ):
-                    videos.append(item)
+                videos.append(item)
 
         return videos
 

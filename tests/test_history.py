@@ -74,6 +74,7 @@ class TestHistoryInit:
 
     def test_init_with_non_iterable_invalid_type(self) -> None:
         """Test initialization with a non-iterable invalid type."""
+
         class NonIterable:
             pass
 
@@ -96,6 +97,7 @@ class TestHistoryInit:
 
     def test_init_with_non_empty_invalid_iterable(self) -> None:
         """Test initialization with a non-empty iterable of invalid items."""
+
         # This should specifically test the branch that falls through to TypeError
         # when we have an iterable that's not empty but doesn't contain ModelMessages
         class FakeObject:
@@ -181,35 +183,41 @@ class TestToolViews:
         """Create messages with tool calls and returns."""
         return [
             ModelRequest(parts=[UserPromptPart(content="Roll a dice")]),
-            ModelResponse(parts=[
-                ToolCallPart(
-                    tool_name="roll_dice",
-                    args={"sides": 6},
-                    tool_call_id="call_123"
-                )
-            ]),
-            ModelRequest(parts=[
-                ToolReturnPart(
-                    tool_name="roll_dice",
-                    content="4",
-                    tool_call_id="call_123"
-                )
-            ]),
-            ModelResponse(parts=[
-                TextPart(content="You rolled a 4!"),
-                ToolCallPart(
-                    tool_name="get_weather",
-                    args={"city": "London"},
-                    tool_call_id="call_456"
-                )
-            ]),
-            ModelRequest(parts=[
-                ToolReturnPart(
-                    tool_name="get_weather",
-                    content="Rainy, 15°C",
-                    tool_call_id="call_456"
-                )
-            ]),
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="roll_dice",
+                        args={"sides": 6},
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(
+                        tool_name="roll_dice", content="4", tool_call_id="call_123"
+                    )
+                ]
+            ),
+            ModelResponse(
+                parts=[
+                    TextPart(content="You rolled a 4!"),
+                    ToolCallPart(
+                        tool_name="get_weather",
+                        args={"city": "London"},
+                        tool_call_id="call_456",
+                    ),
+                ]
+            ),
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(
+                        tool_name="get_weather",
+                        content="Rainy, 15°C",
+                        tool_call_id="call_456",
+                    )
+                ]
+            ),
         ]
 
     def test_tools_calls_all(self, tool_messages: list[ModelMessage]) -> None:
@@ -267,14 +275,16 @@ class TestToolViews:
     def test_tool_return_metadata(self) -> None:
         """Test accessing tool return metadata."""
         messages = [
-            ModelRequest(parts=[
-                ToolReturnPart(
-                    tool_name="complex_tool",
-                    content="Result",
-                    tool_call_id="call_789",
-                    metadata={"execution_time": 1.23, "cache_hit": True}
-                )
-            ]),
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(
+                        tool_name="complex_tool",
+                        content="Result",
+                        tool_call_id="call_789",
+                        metadata={"execution_time": 1.23, "cache_hit": True},
+                    )
+                ]
+            ),
         ]
 
         hist = History(messages)
@@ -296,11 +306,8 @@ class TestUsageAggregation:
             ModelResponse(
                 parts=[TextPart(content="Hi!")],
                 usage=Usage(
-                    requests=1,
-                    request_tokens=10,
-                    response_tokens=5,
-                    total_tokens=15
-                )
+                    requests=1, request_tokens=10, response_tokens=5, total_tokens=15
+                ),
             ),
         ]
 
@@ -319,21 +326,15 @@ class TestUsageAggregation:
             ModelResponse(
                 parts=[TextPart(content="Hi!")],
                 usage=Usage(
-                    requests=1,
-                    request_tokens=10,
-                    response_tokens=5,
-                    total_tokens=15
-                )
+                    requests=1, request_tokens=10, response_tokens=5, total_tokens=15
+                ),
             ),
             ModelRequest(parts=[UserPromptPart(content="How are you?")]),
             ModelResponse(
                 parts=[TextPart(content="I'm great!")],
                 usage=Usage(
-                    requests=1,
-                    request_tokens=20,
-                    response_tokens=10,
-                    total_tokens=30
-                )
+                    requests=1, request_tokens=20, response_tokens=10, total_tokens=30
+                ),
             ),
         ]
 
@@ -353,16 +354,16 @@ class TestUsageAggregation:
                 usage=Usage(
                     requests=1,
                     total_tokens=100,
-                    details={"cache_tokens": 50, "reasoning_tokens": 10}
-                )
+                    details={"cache_tokens": 50, "reasoning_tokens": 10},
+                ),
             ),
             ModelResponse(
                 parts=[TextPart(content="Response 2")],
                 usage=Usage(
                     requests=1,
                     total_tokens=200,
-                    details={"cache_tokens": 75, "reasoning_tokens": 25}
-                )
+                    details={"cache_tokens": 75, "reasoning_tokens": 25},
+                ),
             ),
         ]
 
@@ -392,8 +393,7 @@ class TestUsageAggregation:
         """Test that tokens() is an alias for usage()."""
         messages = [
             ModelResponse(
-                parts=[TextPart(content="Hi!")],
-                usage=Usage(total_tokens=42)
+                parts=[TextPart(content="Hi!")], usage=Usage(total_tokens=42)
             ),
         ]
 
@@ -407,15 +407,15 @@ class TestEdgeCases:
     def test_mixed_parts_in_single_message(self) -> None:
         """Test messages with multiple part types."""
         messages = [
-            ModelResponse(parts=[
-                TextPart(content="Here's the weather:"),
-                ToolCallPart(
-                    tool_name="get_weather",
-                    args={},
-                    tool_call_id="call_1"
-                ),
-                TextPart(content="Let me check for you."),
-            ]),
+            ModelResponse(
+                parts=[
+                    TextPart(content="Here's the weather:"),
+                    ToolCallPart(
+                        tool_name="get_weather", args={}, tool_call_id="call_1"
+                    ),
+                    TextPart(content="Let me check for you."),
+                ]
+            ),
         ]
 
         hist = History(messages)
@@ -435,9 +435,7 @@ class TestEdgeCases:
         returned_messages = hist.all_messages()
 
         # Modifying returned list shouldn't affect History
-        returned_messages.append(
-            ModelResponse(parts=[TextPart(content="New message")])
-        )
+        returned_messages.append(ModelResponse(parts=[TextPart(content="New message")]))
 
         assert len(hist.all_messages()) == 1
         assert len(original_messages) == 1
@@ -448,11 +446,8 @@ class TestEdgeCases:
             ModelResponse(
                 parts=[TextPart(content="Hi!")],
                 usage=Usage(
-                    requests=0,
-                    request_tokens=0,
-                    response_tokens=10,
-                    total_tokens=10
-                )
+                    requests=0, request_tokens=0, response_tokens=10, total_tokens=10
+                ),
             ),
         ]
 
@@ -561,9 +556,7 @@ class TestMediaView:
         """Test media view with single ImageUrl."""
         image_url = ImageUrl(url="https://example.com/image.jpg")
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(content=["Look at this:", image_url])
-            ]),
+            ModelRequest(parts=[UserPromptPart(content=["Look at this:", image_url])]),
             ModelResponse(parts=[TextPart(content="Nice image!")]),
         ]
 
@@ -599,9 +592,9 @@ class TestMediaView:
         """Test media view with single BinaryContent."""
         binary_content = BinaryContent(data=b"fake_image_data", media_type="image/jpeg")
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(content=["Here's an image:", binary_content])
-            ]),
+            ModelRequest(
+                parts=[UserPromptPart(content=["Here's an image:", binary_content])]
+            ),
             ModelResponse(parts=[TextPart(content="Got it!")]),
         ]
 
@@ -640,17 +633,21 @@ class TestMediaView:
         binary_audio = BinaryContent(data=b"audio_data", media_type="audio/wav")
 
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(content=[
-                    "Check these out:",
-                    image_url,
-                    audio_url,
-                    doc_url,
-                    video_url,
-                    binary_image,
-                    binary_audio
-                ])
-            ]),
+            ModelRequest(
+                parts=[
+                    UserPromptPart(
+                        content=[
+                            "Check these out:",
+                            image_url,
+                            audio_url,
+                            doc_url,
+                            video_url,
+                            binary_image,
+                            binary_audio,
+                        ]
+                    )
+                ]
+            ),
             ModelResponse(parts=[TextPart(content="All received!")]),
         ]
 
@@ -733,9 +730,11 @@ class TestMediaView:
         text_content = BinaryContent(data=b"text_data", media_type="text/plain")
 
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(content=["Documents:", pdf_content, text_content])
-            ]),
+            ModelRequest(
+                parts=[
+                    UserPromptPart(content=["Documents:", pdf_content, text_content])
+                ]
+            ),
             ModelResponse(parts=[TextPart(content="Got documents!")]),
         ]
 
@@ -753,11 +752,13 @@ class TestMediaView:
         text_content = BinaryContent(data=b"text_data", media_type="text/plain")
 
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(
-                    content=["Documents:", doc_url, pdf_content, text_content]
-                )
-            ]),
+            ModelRequest(
+                parts=[
+                    UserPromptPart(
+                        content=["Documents:", doc_url, pdf_content, text_content]
+                    )
+                ]
+            ),
             ModelResponse(parts=[TextPart(content="Got documents!")]),
         ]
 
@@ -790,9 +791,9 @@ class TestMediaView:
         video_content = BinaryContent(data=b"video_data", media_type="video/mp4")
 
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(content=["Videos:", video_url, video_content])
-            ]),
+            ModelRequest(
+                parts=[UserPromptPart(content=["Videos:", video_url, video_content])]
+            ),
             ModelResponse(parts=[TextPart(content="Got videos!")]),
         ]
 
@@ -820,9 +821,7 @@ class TestMediaView:
         """Test that media items are included in History repr."""
         image_url = ImageUrl(url="https://example.com/image.jpg")
         messages = [
-            ModelRequest(parts=[
-                UserPromptPart(content=["Look:", image_url])
-            ]),
+            ModelRequest(parts=[UserPromptPart(content=["Look:", image_url])]),
             ModelResponse(parts=[TextPart(content="Nice!")]),
         ]
 
@@ -952,7 +951,7 @@ class TestFileLoading:
         ]
 
         # Create a temporary file with serialized messages
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(to_jsonable_python(messages), f)
             temp_path = f.name
 
@@ -971,25 +970,29 @@ class TestFileLoading:
         """Test loading history from a Path object."""
         messages = [
             ModelRequest(parts=[UserPromptPart(content="What's the weather?")]),
-            ModelResponse(parts=[
-                ToolCallPart(
-                    tool_name="get_weather",
-                    args={"city": "London"},
-                    tool_call_id="call_123"
-                )
-            ]),
-            ModelRequest(parts=[
-                ToolReturnPart(
-                    tool_name="get_weather",
-                    content="Rainy, 15°C",
-                    tool_call_id="call_123"
-                )
-            ]),
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="get_weather",
+                        args={"city": "London"},
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(
+                        tool_name="get_weather",
+                        content="Rainy, 15°C",
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
             ModelResponse(parts=[TextPart(content="It's rainy and 15°C in London.")]),
         ]
 
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(to_jsonable_python(messages), f)
             temp_path = Path(f.name)
 
@@ -1002,7 +1005,9 @@ class TestFileLoading:
             assert len(hist.tools.calls().all()) == 1
             tool_return = hist.tools.returns().last()
             assert tool_return is not None
-            assert hasattr(tool_return, 'content') and tool_return.content == "Rainy, 15°C"
+            assert (
+                hasattr(tool_return, "content") and tool_return.content == "Rainy, 15°C"
+            )
         finally:
             temp_path.unlink()
 
@@ -1018,7 +1023,7 @@ class TestFileLoading:
 
     def test_load_from_invalid_json_file(self) -> None:
         """Test error handling for invalid JSON content."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("not valid json {")
             temp_path = f.name
 
@@ -1030,7 +1035,7 @@ class TestFileLoading:
 
     def test_load_from_invalid_message_format(self) -> None:
         """Test error handling for valid JSON but invalid message format."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump([{"invalid": "message", "format": True}], f)
             temp_path = f.name
 
@@ -1042,7 +1047,7 @@ class TestFileLoading:
 
     def test_load_from_path_object_invalid_json(self) -> None:
         """Test error handling for Path object with invalid JSON."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             f.write("not valid json {")
             temp_path = Path(f.name)
 
@@ -1059,26 +1064,20 @@ class TestFileLoading:
             ModelResponse(
                 parts=[TextPart(content="Why did the chicken cross the road?")],
                 usage=Usage(
-                    requests=1,
-                    request_tokens=10,
-                    response_tokens=15,
-                    total_tokens=25
-                )
+                    requests=1, request_tokens=10, response_tokens=15, total_tokens=25
+                ),
             ),
             ModelRequest(parts=[UserPromptPart(content="I don't know, why?")]),
             ModelResponse(
                 parts=[TextPart(content="To get to the other side!")],
                 usage=Usage(
-                    requests=1,
-                    request_tokens=20,
-                    response_tokens=10,
-                    total_tokens=30
-                )
+                    requests=1, request_tokens=20, response_tokens=10, total_tokens=30
+                ),
             ),
         ]
 
         # Serialize to file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(to_jsonable_python(original_messages), f)
             temp_path = f.name
 
@@ -1111,8 +1110,7 @@ class TestRepr:
         messages = [
             ModelRequest(parts=[UserPromptPart(content="Hello")]),
             ModelResponse(
-                parts=[TextPart(content="Hi!")],
-                usage=Usage(total_tokens=50)
+                parts=[TextPart(content="Hi!")], usage=Usage(total_tokens=50)
             ),
         ]
 
@@ -1138,23 +1136,17 @@ class TestRepr:
         """Test repr with tool calls."""
         messages = [
             ModelRequest(parts=[UserPromptPart(content="Roll dice")]),
-            ModelResponse(parts=[
-                ToolCallPart(
-                    tool_name="roll_dice",
-                    args={},
-                    tool_call_id="1"
-                )
-            ]),
-            ModelRequest(parts=[
-                ToolReturnPart(
-                    tool_name="roll_dice",
-                    content="6",
-                    tool_call_id="1"
-                )
-            ]),
+            ModelResponse(
+                parts=[ToolCallPart(tool_name="roll_dice", args={}, tool_call_id="1")]
+            ),
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(tool_name="roll_dice", content="6", tool_call_id="1")
+                ]
+            ),
             ModelResponse(
                 parts=[TextPart(content="You rolled a 6!")],
-                usage=Usage(total_tokens=100)
+                usage=Usage(total_tokens=100),
             ),
         ]
 
@@ -1165,16 +1157,22 @@ class TestRepr:
         """Test repr with multiple tool calls."""
         messages = [
             ModelRequest(parts=[UserPromptPart(content="Check weather and time")]),
-            ModelResponse(parts=[
-                ToolCallPart(tool_name="get_weather", args={}, tool_call_id="1"),
-                ToolCallPart(tool_name="get_time", args={}, tool_call_id="2"),
-            ]),
-            ModelRequest(parts=[
-                ToolReturnPart(
-                    tool_name="get_weather", content="Sunny", tool_call_id="1"
-                ),
-                ToolReturnPart(tool_name="get_time", content="3pm", tool_call_id="2"),
-            ]),
+            ModelResponse(
+                parts=[
+                    ToolCallPart(tool_name="get_weather", args={}, tool_call_id="1"),
+                    ToolCallPart(tool_name="get_time", args={}, tool_call_id="2"),
+                ]
+            ),
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(
+                        tool_name="get_weather", content="Sunny", tool_call_id="1"
+                    ),
+                    ToolReturnPart(
+                        tool_name="get_time", content="3pm", tool_call_id="2"
+                    ),
+                ]
+            ),
             ModelResponse(parts=[TextPart(content="It's sunny and 3pm")]),
         ]
 
@@ -1203,8 +1201,7 @@ class TestRepr:
         messages = [
             ModelRequest(parts=[UserPromptPart(content="Hello")]),
             ModelResponse(
-                parts=[TextPart(content="Hi!")],
-                usage=Usage(total_tokens=42)
+                parts=[TextPart(content="Hi!")], usage=Usage(total_tokens=42)
             ),
         ]
 
