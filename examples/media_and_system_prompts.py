@@ -29,7 +29,8 @@ def create_sample_conversation():
         ModelRequest(
             parts=[
                 SystemPromptPart(
-                    content="You are a helpful AI assistant specialized in analyzing media content."
+                    content="You are a helpful AI assistant specialized in "
+                    "analyzing media content."
                 ),
                 UserPromptPart(
                     content=[
@@ -43,7 +44,8 @@ def create_sample_conversation():
         ModelResponse(
             parts=[
                 TextPart(
-                    content="I can see a beautiful vacation photo and hear a voice memo. The image shows..."
+                    content="I can see a beautiful vacation photo and hear a "
+                    "voice memo. The image shows..."
                 )
             ]
         ),
@@ -62,7 +64,8 @@ def create_sample_conversation():
         ModelResponse(
             parts=[
                 TextPart(
-                    content="I've received the binary image data. This appears to be a PNG image..."
+                    content="I've received the binary image data. This appears "
+                    "to be a PNG image..."
                 )
             ]
         ),
@@ -71,7 +74,7 @@ def create_sample_conversation():
     return messages
 
 
-def analyze_conversation(messages):
+def analyze_conversation(messages):  # noqa: PLR0912, PLR0915
     """Analyze the conversation using History wrapper."""
     print("=== Conversation Analysis with Media and System Prompts ===\n")
 
@@ -238,7 +241,8 @@ def demonstrate_real_world_usage():
     print(f"      • Tokens: {conversation_stats['tokens']}")
     print(f"      • Media items: {conversation_stats['media_items']}")
     print(
-        f"      • System prompt: {'Yes' if conversation_stats['has_system_prompt'] else 'No'}"
+        f"      • System prompt: "
+        f"{'Yes' if conversation_stats['has_system_prompt'] else 'No'}"
     )
     print(f"      • Media breakdown: {conversation_stats['media_breakdown']}")
 

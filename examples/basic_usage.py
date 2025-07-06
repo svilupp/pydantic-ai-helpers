@@ -6,7 +6,7 @@ from pydantic_ai_helpers import History
 
 
 def simple_conversation():
-    """Basic conversation example."""
+    """Run a basic conversation example."""
     agent = Agent("openai:gpt-4.1-mini", system_prompt="You are a helpful assistant.")
 
     # Run a simple query
@@ -43,7 +43,7 @@ def multi_turn_conversation():
 
 
 def tool_usage_example():
-    """Example with tool usage."""
+    """Run an example with tool usage."""
     from pydantic_ai import Tool
 
     # Define a simple tool
@@ -77,7 +77,7 @@ def tool_usage_example():
 
 
 def streaming_example():
-    """Example with streaming responses."""
+    """Run an example with streaming responses."""
     import asyncio
 
     async def stream_story():

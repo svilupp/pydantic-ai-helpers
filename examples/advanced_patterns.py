@@ -30,10 +30,13 @@ def conversation_analysis():
     print("Conversation Analysis:")
     print(f"  Total exchanges: {len(hist.user.all())}")
     print(
-        f"  Average user message length: {sum(len(m.content) for m in hist.user.all()) / len(hist.user.all()):.1f} chars"
+        f"  Average user message length: "
+        f"{sum(len(m.content) for m in hist.user.all()) / len(hist.user.all()):.1f}"
+        f" chars"
     )
     print(
-        f"  Average AI response length: {sum(len(m.content) for m in hist.ai.all()) / len(hist.ai.all()):.1f} chars"
+        f"  Average AI response length: "
+        f"{sum(len(m.content) for m in hist.ai.all()) / len(hist.ai.all()):.1f} chars"
     )
     print(f"  Total tokens used: {hist.usage().total_tokens}")
     print(
@@ -46,11 +49,12 @@ def tool_retry_pattern():
     call_count = 0
 
     def flaky_tool(number: int) -> str:
-        """A tool that sometimes fails."""
+        """Return a doubled number, sometimes fails."""
         nonlocal call_count
         call_count += 1
 
-        if call_count < 2:
+        min_calls = 2
+        if call_count < min_calls:
             raise ModelRetry("Service temporarily unavailable, please retry")
 
         return f"Success! The number is {number * 2}"
@@ -66,7 +70,8 @@ def tool_retry_pattern():
 
     print(f"Tool was called {len(tool_calls)} times")
     print(
-        f"Successful returns: {len([r for r in tool_returns if 'Success' in r.content])}"
+        f"Successful returns: "
+        f"{len([r for r in tool_returns if 'Success' in r.content])}"
     )
     print(f"Final result: {hist.ai.last().content}")
 
@@ -178,7 +183,8 @@ def parallel_tool_execution():
         tool_calls = hist.tools.calls().all()
         print(f"Executed {len(tool_calls)} tools in {elapsed:.2f} seconds")
 
-        if elapsed < 1.5:  # Should be ~1 second if parallel
+        parallel_threshold = 1.5
+        if elapsed < parallel_threshold:  # Should be ~1 second if parallel
             print("✓ Tools executed in parallel")
         else:
             print("✗ Tools executed sequentially")
@@ -186,7 +192,8 @@ def parallel_tool_execution():
         for call in tool_calls:
             return_val = hist.tools.returns(name=call.tool_name).last()
             print(
-                f"  {call.tool_name}: {return_val.content if return_val else 'No return'}"
+                f"  {call.tool_name}: "
+                f"{return_val.content if return_val else 'No return'}"
             )
 
     asyncio.run(analyze_parallel_execution())
@@ -235,7 +242,8 @@ def conversation_summarization():
     )
 
     summary_result = summarizer.run_sync(
-        f"Summarize this conversation in 3 bullet points:\n\n{conversation_text[:2000]}..."
+        f"Summarize this conversation in 3 bullet points:\n\n"
+        f"{conversation_text[:2000]}..."
     )
 
     summary_hist = History(summary_result)
