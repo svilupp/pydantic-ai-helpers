@@ -156,6 +156,7 @@ def cost_tracking():
 
 def parallel_tool_execution():
     """Analyze parallel tool execution patterns."""
+
     async def slow_tool_a(x: int) -> str:
         await asyncio.sleep(1)  # Simulate slow API
         return f"Tool A result: {x * 2}"

@@ -46,6 +46,7 @@ def multi_turn_conversation():
 
 def tool_usage_example():
     """Run an example with tool usage."""
+
     # Define a simple tool
     def get_weather(city: str) -> str:
         """Get weather for a city."""
@@ -78,6 +79,7 @@ def tool_usage_example():
 
 def streaming_example():
     """Run an example with streaming responses."""
+
     async def stream_story():
         agent = Agent("openai:gpt-4.1-mini")
 

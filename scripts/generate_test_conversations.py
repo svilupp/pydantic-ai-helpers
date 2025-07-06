@@ -39,14 +39,12 @@ def generate_simple_conversation():
 
     # Second turn using history
     result2 = agent.run_sync(
-        "Can you explain why that's funny?",
-        message_history=result1.all_messages()
+        "Can you explain why that's funny?", message_history=result1.all_messages()
     )
 
     # Third turn
     result3 = agent.run_sync(
-        "Tell me another programming joke.",
-        message_history=result2.all_messages()
+        "Tell me another programming joke.", message_history=result2.all_messages()
     )
 
     save_conversation("simple_multiturn", result3.all_messages())
@@ -79,12 +77,10 @@ def generate_tool_conversation():
     result2 = agent.run_sync(
         "Let me try again, I guess 2",
         deps="Alice",
-        message_history=result1.all_messages()
+        message_history=result1.all_messages(),
     )
     result3 = agent.run_sync(
-        "One more time! I pick 6",
-        deps="Alice",
-        message_history=result2.all_messages()
+        "One more time! I pick 6", deps="Alice", message_history=result2.all_messages()
     )
 
     save_conversation("dice_game_with_tools", result3.all_messages())
@@ -104,7 +100,7 @@ def generate_structured_conversation():
     agent = Agent(
         "openai:gpt-4o",
         result_type=MathProblem,
-        system_prompt="You are a math tutor. Solve problems step by step."
+        system_prompt="You are a math tutor. Solve problems step by step.",
     )
 
     result1 = agent.run_sync("What is 15% of 80?")
@@ -113,7 +109,7 @@ def generate_structured_conversation():
     result2 = agent.run_sync(
         "Now solve: If a shirt costs $40 after a 20% discount, "
         "what was the original price?",
-        message_history=result1.all_messages()
+        message_history=result1.all_messages(),
     )
 
     save_conversation("math_tutor_structured", result2.all_messages())
@@ -125,22 +121,22 @@ def generate_creative_conversation():
     agent = Agent(
         "openai:gpt-4o",
         system_prompt="You are a creative writing assistant helping with "
-        "story development."
+        "story development.",
     )
 
     result1 = agent.run_sync("Help me create a character for a sci-fi story.")
     result2 = agent.run_sync(
         "Great! Now what kind of conflict should this character face?",
-        message_history=result1.all_messages()
+        message_history=result1.all_messages(),
     )
     result3 = agent.run_sync(
         "How would this character's background influence their approach to "
         "this conflict?",
-        message_history=result2.all_messages()
+        message_history=result2.all_messages(),
     )
     result4 = agent.run_sync(
         "Write a short opening paragraph for this story.",
-        message_history=result3.all_messages()
+        message_history=result3.all_messages(),
     )
 
     save_conversation("creative_writing_4turns", result4.all_messages())
@@ -152,13 +148,13 @@ def generate_code_review_conversation():
     agent = Agent(
         "openai:gpt-4o",
         system_prompt="You are a code review assistant. Analyze code and "
-        "suggest improvements."
+        "suggest improvements.",
     )
 
     @agent.tool_plain
     def analyze_complexity(code: str) -> str:
         """Analyze code complexity (mock implementation)."""
-        lines = code.strip().split('\n')
+        lines = code.strip().split("\n")
         return f"Code has {len(lines)} lines with moderate complexity"
 
     @agent.tool_plain
@@ -171,25 +167,25 @@ def generate_code_review_conversation():
             issues.append("Missing module docstring")
         return issues if issues else ["No style issues found"]
 
-    code_sample = '''
+    code_sample = """
 def calculate_average(numbers):
     # TODO: Add error handling
     total = 0
     for num in numbers:
         total += num
     return total / len(numbers)
-'''
+"""
 
     result1 = agent.run_sync(
         f"Review this Python function:\n```python\n{code_sample}\n```"
     )
     result2 = agent.run_sync(
         "What specific improvements would you suggest for error handling?",
-        message_history=result1.all_messages()
+        message_history=result1.all_messages(),
     )
     result3 = agent.run_sync(
         "Show me the improved version of the function.",
-        message_history=result2.all_messages()
+        message_history=result2.all_messages(),
     )
 
     save_conversation("code_review_with_tools", result3.all_messages())
@@ -211,11 +207,11 @@ def generate_context_switch():
     result1 = agent.run_sync("Explain quantum computing in simple terms.")
     result2 = agent.run_sync(
         "Now let's switch topics. What are the health benefits of meditation?",
-        message_history=result1.all_messages()
+        message_history=result1.all_messages(),
     )
     result3 = agent.run_sync(
         "Going back to quantum computing, what are its practical applications?",
-        message_history=result2.all_messages()
+        message_history=result2.all_messages(),
     )
 
     save_conversation("context_switching", result3.all_messages())
