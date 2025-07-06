@@ -1,0 +1,119 @@
+[project]
+name = "pydantic-ai-helpers"
+version = "0.0.1"
+description = "Boring, opinionated helpers for PydanticAI that are so simple you didn't want to even vibe code them. (Unofficial)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    {name = "Jan Siml", email = "49557684+svilupp@users.noreply.github.com"},
+]
+keywords = ["pydantic", "ai", "utilities", "history", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic-ai>=0.0.20",
+]
+
+[build-system]
+requires = ["uv_build>=0.7.19,<0.8.0"]
+build-backend = "uv_build"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.5.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.5.0",
+    "pydantic-core>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/pydantic-ai-helpers"
+Documentation = "https://github.com/yourusername/pydantic-ai-helpers#readme"
+Repository = "https://github.com/yourusername/pydantic-ai-helpers"
+Issues = "https://github.com/yourusername/pydantic-ai-helpers/issues"
+Changelog = "https://github.com/yourusername/pydantic-ai-helpers/blob/main/CHANGELOG.md"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "PL",     # pylint
+    "SIM",    # flake8-simplify
+    "TID",    # flake8-tidy-imports
+    "RUF",    # ruff-specific rules
+    "D",      # pydocstyle
+]
+ignore = [
+    "PLR0913",  # Too many arguments
+    "D107",     # Missing docstring in __init__
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D", "PLR2004", "S101"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+no_implicit_reexport = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = [
+    "--cov=pydantic_ai_helpers",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=100",
+    "-v",
+]
+
+[tool.coverage.run]
+source = ["src/pydantic_ai_helpers"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[dependency-groups]
+dev = [
+    "build>=1.2.2.post1",
+]

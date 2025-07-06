@@ -1,0 +1,45 @@
+[
+  {
+    "parts": [
+      {
+        "content": "You are a helpful assistant.",
+        "timestamp": "2025-07-05T20:01:37.534490Z",
+        "dynamic_ref": null,
+        "part_kind": "system-prompt"
+      },
+      {
+        "content": "What's the capital of France?",
+        "timestamp": "2025-07-05T20:01:37.534498Z",
+        "part_kind": "user-prompt"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "content": "The capital of France is Paris.",
+        "part_kind": "text"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 23,
+      "response_tokens": 7,
+      "total_tokens": 30,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:01:37Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3MnxekUw8Z423XuhRK4YCDRCzK8"
+  }
+]

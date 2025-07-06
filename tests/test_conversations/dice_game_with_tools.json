@@ -1,0 +1,259 @@
+[
+  {
+    "parts": [
+      {
+        "content": "You're a dice game host. Roll the die and see if the number matches the user's guess. Use the player's name in responses.",
+        "timestamp": "2025-07-05T20:00:42.328754Z",
+        "dynamic_ref": null,
+        "part_kind": "system-prompt"
+      },
+      {
+        "content": "My guess is 4",
+        "timestamp": "2025-07-05T20:00:42.328759Z",
+        "part_kind": "user-prompt"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "roll_dice",
+        "args": "{}",
+        "tool_call_id": "call_k9tfreQnCZw1nSh12dLmILzr",
+        "part_kind": "tool-call"
+      },
+      {
+        "tool_name": "get_player_name",
+        "args": "{}",
+        "tool_call_id": "call_y18tZXwV6AUBeSr1iIV1WKtV",
+        "part_kind": "tool-call"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 87,
+      "response_tokens": 41,
+      "total_tokens": 128,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:42Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3Lu1J0LEaETX2JNaSoV7UQF96je"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "roll_dice",
+        "content": "4",
+        "tool_call_id": "call_k9tfreQnCZw1nSh12dLmILzr",
+        "metadata": null,
+        "timestamp": "2025-07-05T20:00:43.432709Z",
+        "part_kind": "tool-return"
+      },
+      {
+        "tool_name": "get_player_name",
+        "content": "Alice",
+        "tool_call_id": "call_y18tZXwV6AUBeSr1iIV1WKtV",
+        "metadata": null,
+        "timestamp": "2025-07-05T20:00:43.432731Z",
+        "part_kind": "tool-return"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "content": "Congratulations, Alice! You guessed the number 4, and that's exactly what was rolled. Well done! \ud83c\udf89",
+        "part_kind": "text"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 144,
+      "response_tokens": 24,
+      "total_tokens": 168,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:43Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3LvVIMxPnFnskxm4cccKPj2gK0N"
+  },
+  {
+    "parts": [
+      {
+        "content": "Let me try again, I guess 2",
+        "timestamp": "2025-07-05T20:00:44.149962Z",
+        "part_kind": "user-prompt"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "roll_dice",
+        "args": "{}",
+        "tool_call_id": "call_nHLa5pRRckpEtfR59DF4L5yj",
+        "part_kind": "tool-call"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 184,
+      "response_tokens": 11,
+      "total_tokens": 195,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:44Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3Lw19nPFvjN8wk7WAfCFIE8utDh"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "roll_dice",
+        "content": "1",
+        "tool_call_id": "call_nHLa5pRRckpEtfR59DF4L5yj",
+        "metadata": null,
+        "timestamp": "2025-07-05T20:00:44.676145Z",
+        "part_kind": "tool-return"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "content": "This time it was a 1, Alice. Better luck next time! \ud83c\udfb2",
+        "part_kind": "text"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 205,
+      "response_tokens": 18,
+      "total_tokens": 223,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:45Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3Lx1hcUMWEVbNjFc4u2K5kHqi7t"
+  },
+  {
+    "parts": [
+      {
+        "content": "One more time! I pick 6",
+        "timestamp": "2025-07-05T20:00:45.769325Z",
+        "part_kind": "user-prompt"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "roll_dice",
+        "args": "{}",
+        "tool_call_id": "call_D2ew0NzFpLaiMsDhLVFD49O9",
+        "part_kind": "tool-call"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 238,
+      "response_tokens": 11,
+      "total_tokens": 249,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:46Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3LyXGx864IoNXGYCI1Tn0sv2tgv"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "roll_dice",
+        "content": "5",
+        "tool_call_id": "call_D2ew0NzFpLaiMsDhLVFD49O9",
+        "metadata": null,
+        "timestamp": "2025-07-05T20:00:46.983515Z",
+        "part_kind": "tool-return"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "content": "It was close, Alice! The die rolled a 5. Let's see if next time is your lucky roll! \ud83c\udfb2",
+        "part_kind": "text"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 259,
+      "response_tokens": 26,
+      "total_tokens": 285,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:47Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3Lz53sk7FgZ2n7x5Wo4zQK0w23U"
+  }
+]

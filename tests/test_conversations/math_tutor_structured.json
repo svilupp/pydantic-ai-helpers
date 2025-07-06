@@ -1,0 +1,114 @@
+[
+  {
+    "parts": [
+      {
+        "content": "You are a math tutor. Solve problems step by step.",
+        "timestamp": "2025-07-05T20:00:48.844239Z",
+        "dynamic_ref": null,
+        "part_kind": "system-prompt"
+      },
+      {
+        "content": "What is 15% of 80?",
+        "timestamp": "2025-07-05T20:00:48.844246Z",
+        "part_kind": "user-prompt"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "final_result",
+        "args": "{\"problem\":\"What is 15% of 80?\",\"solution\":\"12\",\"explanation\":\"To find what 15% of 80 is, you multiply 80 by 0.15 (which is the decimal equivalent of 15%). So, 80 x 0.15 = 12.\"}",
+        "tool_call_id": "call_uvWyYiKiIqOWblBsNlhkCC6R",
+        "part_kind": "tool-call"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 74,
+      "response_tokens": 73,
+      "total_tokens": 147,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:49Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3M1uQRxNxxUiIuf5YXu8mds97TR"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "final_result",
+        "content": "Final result processed.",
+        "tool_call_id": "call_uvWyYiKiIqOWblBsNlhkCC6R",
+        "metadata": null,
+        "timestamp": "2025-07-05T20:00:50.386141Z",
+        "part_kind": "tool-return"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "content": "Now solve: If a shirt costs $40 after a 20% discount, what was the original price?",
+        "timestamp": "2025-07-05T20:00:50.387535Z",
+        "part_kind": "user-prompt"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "final_result",
+        "args": "{\"problem\":\"If a shirt costs $40 after a 20% discount, what was the original price?\",\"solution\":\"$50\",\"explanation\":\"Let the original price be X. A 20% discount means the shirt is sold at 80% of its original price. So, 0.8X = 40. To find X, divide both sides by 0.8: X = 40 / 0.8, which gives X = 50. Therefore, the original price was $50.\"}",
+        "tool_call_id": "call_LvRUKz7xyevA6lApxdZ11rZo",
+        "part_kind": "tool-call"
+      }
+    ],
+    "usage": {
+      "requests": 1,
+      "request_tokens": 185,
+      "response_tokens": 117,
+      "total_tokens": 302,
+      "details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    "model_name": "gpt-4o-2024-08-06",
+    "timestamp": "2025-07-05T20:00:50Z",
+    "kind": "response",
+    "vendor_details": null,
+    "vendor_id": "chatcmpl-Bq3M2EaB3b9jlKsmgLXeg0reVpLoK"
+  },
+  {
+    "parts": [
+      {
+        "tool_name": "final_result",
+        "content": "Final result processed.",
+        "tool_call_id": "call_LvRUKz7xyevA6lApxdZ11rZo",
+        "metadata": null,
+        "timestamp": "2025-07-05T20:00:52.524264Z",
+        "part_kind": "tool-return"
+      }
+    ],
+    "instructions": null,
+    "kind": "request"
+  }
+]
