@@ -3,10 +3,10 @@ name: Documentation
 on:
   push:
     branches: [main]
-    paths: ['docs/**', 'README.md']
+    paths: ['docs/**', 'README.md', 'examples/**']
   pull_request:
     branches: [main]
-    paths: ['docs/**', 'README.md']
+    paths: ['docs/**', 'README.md', 'examples/**']
 
 permissions:
   contents: read
