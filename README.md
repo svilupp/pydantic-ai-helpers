@@ -58,14 +58,9 @@ The best part? Your IDE will help you with the suggestions for the available met
 ## Installation
 
 ```bash
-pip install pydantic-ai-helpers
-```
-
-Or with your favorite package manager:
-
-```bash
-poetry add pydantic-ai-helpers
 uv add pydantic-ai-helpers
+# pip install pydantic-ai-helpers
+# poetry add pydantic-ai-helpers
 ```
 
 ## Quick Start
