@@ -213,6 +213,17 @@ class ScalarCompare:
         if self.options is not None:
             return self.options
 
+        # Check if any deprecated parameters are being used
+        using_deprecated_params = any(
+            [
+                self.coerce_to is not None,
+                self.abs_tol is not None,
+                self.rel_tol is not None,
+                self.normalize_opts is not None,
+                self.enum_values is not None,
+            ]
+        )
+
         # Build options from deprecated parameters
         normalize = None
         if self.normalize_opts:
@@ -225,7 +236,9 @@ class ScalarCompare:
 
         return CompareOptions(
             normalize=normalize,
-            fuzzy=FuzzyOptions(),  # Default fuzzy options
+            # Disable fuzzy for backwards compatibility when using deprecated params,
+            # enable by default for new API
+            fuzzy=FuzzyOptions(enabled=not using_deprecated_params),
             coerce_to=self.coerce_to,
             abs_tol=self.abs_tol,
             rel_tol=self.rel_tol,
@@ -397,6 +410,14 @@ class ListCompare:
         if self.options is not None:
             return self.options
 
+        # Check if any deprecated parameters are being used
+        using_deprecated_params = any(
+            [
+                self.normalize_opts is not None,
+                self.element_coerce_to is not None,
+            ]
+        )
+
         # Build options from deprecated parameters
         normalize = None
         if self.normalize_opts:
@@ -409,7 +430,9 @@ class ListCompare:
 
         return CompareOptions(
             normalize=normalize,
-            fuzzy=FuzzyOptions(),  # Default fuzzy options
+            # Disable fuzzy for backwards compatibility when using deprecated params,
+            # enable by default for new API
+            fuzzy=FuzzyOptions(enabled=not using_deprecated_params),
             coerce_to=self.element_coerce_to,
         )
 
@@ -729,6 +752,14 @@ class InclusionCompare:
         if self.options is not None:
             return self.options
 
+        # Check if any deprecated parameters are being used
+        using_deprecated_params = any(
+            [
+                self.normalize_opts is not None,
+                self.element_coerce_to is not None,
+            ]
+        )
+
         # Build options from deprecated parameters
         normalize = None
         if self.normalize_opts:
@@ -741,7 +772,9 @@ class InclusionCompare:
 
         return CompareOptions(
             normalize=normalize,
-            fuzzy=FuzzyOptions(),  # Default fuzzy options
+            # Disable fuzzy for backwards compatibility when using deprecated params,
+            # enable by default for new API
+            fuzzy=FuzzyOptions(enabled=not using_deprecated_params),
             coerce_to=self.element_coerce_to,
         )
 

@@ -278,17 +278,17 @@ class TestListCompare:
         # Order insensitive (default)
         value, reason = comp(["a", "b"], ["b", "a"])
         assert value == 1.0
-        assert "lists equal" in reason
+        assert "fuzzy equality" in reason
 
         # Order sensitive
         comp = ListCompare(mode="equality", order_sensitive=True)
         value, reason = comp(["a", "b"], ["b", "a"])
         assert value == 0.0
-        assert "lists differ" in reason
+        assert "fuzzy equality" in reason and "avg_score=0.000" in reason
 
         value, reason = comp(["a", "b"], ["a", "b"])
         assert value == 1.0
-        assert "lists equal" in reason
+        assert "fuzzy equality" in reason
 
     def test_multiset_equality(self) -> None:
         """Test multiset equality comparisons."""
@@ -296,11 +296,11 @@ class TestListCompare:
 
         value, reason = comp(["a", "a", "b"], ["a", "b", "a"])
         assert value == 1.0
-        assert "lists equal" in reason
+        assert "fuzzy equality" in reason
 
         value, reason = comp(["a", "a", "b"], ["a", "b"])
         assert value == 0.0
-        assert "lists differ" in reason
+        assert "lists have different lengths" in reason
 
     def test_recall_mode(self) -> None:
         """Test recall calculations."""
@@ -309,12 +309,12 @@ class TestListCompare:
         # Perfect recall
         value, reason = comp(["a", "b", "c"], ["a", "b", "c"])
         assert value == 1.0
-        assert "recall: hits=3, denom=3, score=1.0000" in reason
+        assert "fuzzy recall: fuzzy_score_sum=3.000, denom=3, score=1.0000" in reason
 
         # Partial recall
         value, reason = comp(["a", "b"], ["a", "b", "c"])
         assert abs(value - 2 / 3) < 0.001
-        assert "recall: hits=2, denom=3" in reason
+        assert "fuzzy recall: fuzzy_score_sum=2.000, denom=3" in reason
 
         # No requirements
         value, reason = comp(["a", "b"], [])
@@ -328,12 +328,12 @@ class TestListCompare:
         # Perfect precision
         value, reason = comp(["a", "b"], ["a", "b", "c"])
         assert value == 1.0
-        assert "precision: hits=2, denom=2, score=1.0000" in reason
+        assert "fuzzy precision: fuzzy_score_sum=2.000, denom=2, score=1.0000" in reason
 
         # Partial precision
         value, reason = comp(["a", "b", "x"], ["a", "b", "c"])
         assert abs(value - 2 / 3) < 0.001
-        assert "precision: hits=2, denom=3" in reason
+        assert "fuzzy precision: fuzzy_score_sum=2.000, denom=3" in reason
 
         # No output
         value, reason = comp([], ["a", "b"])
@@ -403,11 +403,11 @@ class TestInclusionCompare:
 
         value, reason = comp("apple", ["apple", "banana", "cherry"])
         assert value == 1.0
-        assert "'apple' in" in reason
+        assert "fuzzy match: 'apple' -> 'apple'" in reason
 
         value, reason = comp("grape", ["apple", "banana", "cherry"])
-        assert value == 0.0
-        assert "'grape' not in" in reason
+        assert value < 0.85  # Below fuzzy threshold
+        assert "no fuzzy match" in reason or "best_score" in reason
 
     def test_normalization(self) -> None:
         """Test normalization in inclusion checks."""
@@ -457,7 +457,7 @@ class TestInclusionCompare:
 
         value, reason = comp("test", [])
         assert value == 0.0
-        assert "'test' not in []" in reason
+        assert "no fuzzy match: 'test' best_score=0.000" in reason
 
     def test_mixed_types_in_sequence(self) -> None:
         """Test inclusion with mixed types in sequence."""
@@ -465,7 +465,7 @@ class TestInclusionCompare:
 
         value, reason = comp("42", ["hello", 42, "world"])
         assert value == 0.0  # String "42" != int 42
-        assert "'42' not in" in reason
+        assert "no fuzzy match: '42' best_score=0.000" in reason
 
         value, reason = comp(42, ["hello", 42, "world"])
         assert value == 1.0

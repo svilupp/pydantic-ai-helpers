@@ -105,7 +105,7 @@ class TestIntegration:
         evaluator = phe.ValueInExpectedList(
             output_path="predicted_category",
             expected_path="valid_categories",
-            normalize_opts={"lowercase": True},
+            normalize_lowercase=True,
             evaluation_name="category_valid",
         )
 
@@ -120,7 +120,7 @@ class TestIntegration:
         result = get_evaluation_result(case_result, "category_valid")
 
         assert result.value == 1.0
-        assert "'science' in" in result.reason
+        assert "fuzzy match: 'science' -> 'science'" in result.reason
 
     def test_multi_compare_evaluation(self) -> None:
         """Test multi-compare aggregation (removed)."""

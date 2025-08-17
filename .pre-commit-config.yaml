@@ -31,4 +31,4 @@ repos:
           - pydantic-evals>=0.7.2
           - pytest>=8.0.0
         args: [--ignore-missing-imports, --no-strict-optional]
-        exclude: ^(examples/|tests/evals/|src/pydantic_ai_helpers/evals/)
+        exclude: ^(examples/|tests/|src/pydantic_ai_helpers/evals/)

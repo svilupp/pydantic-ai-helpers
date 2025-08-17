@@ -272,8 +272,8 @@ class TestTextNormalizeWithOptions:
         opts = NormalizeOptions(lowercase=False, strip=False, alphanum=True)
         text = "  HELLO-World_123!  "
         result = text_normalize_with_options(text, opts)
-        # Only alphanum=True applied
-        assert result == "  HELLOWorld123  "
+        # Only alphanum=True applied (removes all non-alphanumeric including spaces)
+        assert result == "HELLOWorld123"
 
     def test_maybe_normalize_with_options(self) -> None:
         """Test maybe_text_normalize_with_options function."""

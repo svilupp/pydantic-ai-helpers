@@ -18,7 +18,6 @@ from pydantic_ai.messages import (
     TextPart,
     UserPromptPart,
 )
-
 from pydantic_ai_helpers import History
 
 
@@ -74,7 +73,7 @@ def create_sample_conversation():
     return messages
 
 
-def analyze_conversation(messages):  # noqa: PLR0912, PLR0915
+def analyze_conversation(messages):  # noqa: PLR0912
     """Analyze the conversation using History wrapper."""
     print("=== Conversation Analysis with Media and System Prompts ===\n")
 

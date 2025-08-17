@@ -97,7 +97,9 @@ class TestFromSpecs:
         assert isinstance(evaluator, ListRecall)
         assert evaluator.output_path == "tags"
         assert evaluator.expected_path == "required_tags"
-        assert evaluator.normalize_opts == {"lowercase": True, "strip": True}
+        # Check that the new structured interface is used with flat convenience params
+        assert evaluator.normalize_lowercase
+        assert evaluator.normalize_strip
         assert evaluator.evaluation_name == "tag_recall"
 
     def test_value_in_expected_list_spec(self) -> None:
@@ -343,7 +345,9 @@ class TestFromSpecs:
         tag_eval = evaluators[1]
         assert isinstance(tag_eval, ListRecall)
         assert tag_eval.evaluation_name == "tag_coverage"
-        assert tag_eval.normalize_opts["lowercase"] is True
+        assert tag_eval.normalize_lowercase
+        assert tag_eval.normalize_strip
+        assert tag_eval.normalize_alphanum
         assert tag_eval.multiset is False
 
         # Check third evaluator (ValueInExpectedList)
