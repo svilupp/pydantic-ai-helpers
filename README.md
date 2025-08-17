@@ -76,14 +76,15 @@ result = agent.run_sync("Tell me a joke")
 # Wrap once, access everything
 hist = History(result)  # or ph.History(result)
 
-# Get the last user message
-print(hist.user.last().content)
+# Get the first and last user messages
+print(hist.user.first().content)  # First user message
+print(hist.user.last().content)   # Last user message
 # Output: "Tell me a joke"
 
 # Get all AI responses
 for response in hist.ai.all():
     print(response.content)
-    
+
 # Check token usage
 print(f"Tokens used: {hist.usage().total_tokens}")
 
@@ -239,7 +240,7 @@ print(f"AI said: {ai_message.content}")
 async with agent.run_stream("Tell me a story") as result:
     async for chunk in result.stream():
         print(chunk, end="")
-    
+
     # After streaming completes
     hist = History(result)
     print(f"\nTotal tokens: {hist.tokens().total_tokens}")
@@ -251,7 +252,7 @@ async with agent.run_stream("Tell me a story") as result:
 import json
 from pydantic_core import to_jsonable_python
 from pydantic_ai import Agent
-from pydantic_ai.messages import ModelMessagesTypeAdapter  
+from pydantic_ai.messages import ModelMessagesTypeAdapter
 
 # Save a conversation
 agent = Agent('openai:gpt-4.1-mini')
@@ -277,10 +278,186 @@ same_messages = ModelMessagesTypeAdapter.validate_python(
     to_jsonable_python(hist.all_messages())
 )
 result2 = agent.run_sync(
-    'Tell me a different joke.', 
+    'Tell me a different joke.',
     message_history=same_messages
 )
 ```
+
+## Evals Helpers
+
+You can compare values and collections with simple, reusable comparators, or use small evaluator classes to compare fields by dotted paths. **Now with fuzzy string matching support!**
+
+### Quick Comparators
+
+```python
+from pydantic_ai_helpers.evals import ScalarCompare, ListCompare, InclusionCompare
+
+# Scalars with coercion and tolerance
+comp = ScalarCompare(coerce_to="float", abs_tol=0.01)
+score, why = comp("3.14", 3.13)  # -> (1.0, 'numbers match')
+
+# Lists with recall/precision or equality
+recall = ListCompare(mode="recall")
+score, why = recall(["a", "b"], ["a", "b", "c"])  # -> ~0.667
+
+equality = ListCompare(mode="equality", order_sensitive=False)
+score, _ = equality(["a", "b"], ["b", "a"])  # -> 1.0
+
+# Value in acceptable list with fuzzy matching (NEW!)
+inc = InclusionCompare()  # Uses defaults: normalization + fuzzy matching
+score, _ = inc("aple", ["apple", "banana", "cherry"])  # -> ~0.9 (fuzzy match)
+```
+
+### Fuzzy String Matching (NEW!)
+
+The library now includes powerful fuzzy string matching using rapidfuzz:
+
+```python
+from pydantic_ai_helpers.evals import ScalarCompare, CompareOptions, FuzzyOptions
+
+# Default behavior: fuzzy matching enabled with 0.85 threshold
+comp = ScalarCompare()
+score, why = comp("colour", "color")  # -> (0.91, 'fuzzy match (score=0.91)')
+
+# Exact matching (disable fuzzy)
+comp = ScalarCompare(fuzzy_enabled=False)
+score, why = comp("colour", "color")  # -> (0.0, 'values differ...')
+
+# Custom fuzzy settings
+comp = ScalarCompare(
+    fuzzy_threshold=0.9,           # Stricter threshold
+    fuzzy_algorithm="ratio",       # Different algorithm
+    normalize_lowercase=True       # Case insensitive
+)
+
+# For lists with fuzzy matching
+from pydantic_ai_helpers.evals import ListRecall
+evaluator = ListRecall()  # Fuzzy enabled by default
+score, why = evaluator(
+    ["Python", "AI", "Machine Learning"],    # Output
+    ["python", "ai", "data science", "ml"]   # Expected
+)
+# Uses fuzzy scores: "Machine Learning" partially matches "ml"
+```
+
+### Field-to-Field Evaluators
+
+Use evaluators when you want to compare fields inside nested objects using dotted paths:
+
+```python
+from pydantic_ai_helpers.evals import ScalarEquals, ListRecall, ListEquality, ValueInExpectedList
+from pydantic_evals.evaluators import EvaluatorContext
+
+# Basic usage (fuzzy enabled by default)
+evaluator = ScalarEquals(
+    output_path="user.name",
+    expected_path="user.name",
+    evaluation_name="name_match",
+)
+
+# Custom fuzzy settings for stricter matching
+evaluator = ScalarEquals(
+    output_path="predicted.category",
+    expected_path="actual.category",
+    fuzzy_threshold=0.95,              # Very strict
+    normalize_alphanum=True,           # Remove punctuation
+    evaluation_name="category_match",
+)
+
+# List evaluation with fuzzy matching
+list_evaluator = ListRecall(
+    output_path="predicted_tags",
+    expected_path="required_tags",
+    fuzzy_enabled=True,                # Default: True
+    fuzzy_threshold=0.8,               # Lower threshold for more matches
+    normalize_lowercase=True,          # Default: True
+)
+
+# Disable fuzzy for exact matching only
+exact_evaluator = ScalarEquals(
+    output_path="user.id",
+    expected_path="user.id",
+    fuzzy_enabled=False,               # Exact matching only
+    coerce_to="str",
+)
+
+# Given output/expected objects, use EvaluatorContext to evaluate
+ctx = EvaluatorContext(
+    inputs=None,
+    output={"user": {"name": "Jon Smith"}},
+    expected_output={"user": {"name": "John Smith"}}
+)
+res = evaluator.evaluate(ctx)
+print(res.value, res.reason)  # 0.89, "[name_match] fuzzy match (score=0.89)"
+```
+
+### Advanced Fuzzy Options
+
+```python
+from pydantic_ai_helpers.evals import CompareOptions, FuzzyOptions, NormalizeOptions
+
+# Structured options for complex cases
+opts = CompareOptions(
+    normalize=NormalizeOptions(
+        lowercase=True,      # Case insensitive
+        strip=True,          # Remove whitespace
+        alphanum=True,       # Keep only letters/numbers
+    ),
+    fuzzy=FuzzyOptions(
+        enabled=True,
+        threshold=0.85,                    # 85% similarity required
+        algorithm="token_set_ratio"        # Best for unordered word matching
+    )
+)
+
+evaluator = ScalarEquals(
+    output_path="description",
+    expected_path="description",
+    compare_options=opts
+)
+
+# Available fuzzy algorithms:
+# - "ratio": Character-based similarity
+# - "partial_ratio": Best substring match
+# - "token_sort_ratio": Word-based with sorting
+# - "token_set_ratio": Word-based with set logic (default)
+```
+
+### Practical Examples
+
+```python
+# Product name matching with typos
+evaluator = ScalarEquals(
+    output_path="product_name",
+    expected_path="product_name",
+    fuzzy_threshold=0.8,  # Allow some typos
+    normalize_lowercase=True
+)
+
+# Tag similarity for content classification
+tag_recall = ListRecall(
+    output_path="predicted_tags",
+    expected_path="actual_tags",
+    fuzzy_enabled=True,      # Handle variations like "AI" vs "artificial intelligence"
+    normalize_strip=True
+)
+
+# Category validation with fuzzy fallback
+category_check = ValueInExpectedList(
+    output_path="predicted_category",
+    expected_path="valid_categories",
+    fuzzy_threshold=0.9,     # High threshold for category validation
+    normalize_alphanum=True  # Ignore punctuation differences
+)
+```
+
+Notes:
+- **Fuzzy matching is enabled by default** with 0.85 threshold and `token_set_ratio` algorithm
+- Allowed `coerce_to` values: "str", "int", "float", "bool", "enum" (or pass an Enum class)
+- `ListCompare.mode` values: "equality", "recall", "precision"
+- Normalization defaults: `lowercase=True, strip=True, collapse_spaces=True, alphanum=False`
+- Fuzzy algorithms: "ratio", "partial_ratio", "token_sort_ratio", "token_set_ratio"
+- **Normalization always happens before fuzzy matching** for better results
 
 ## API Reference
 
@@ -293,7 +470,7 @@ The main wrapper class that provides access to all functionality.
 
 **Attributes:**
 - `user: RoleView` - Access user messages
-- `ai: RoleView` - Access AI messages  
+- `ai: RoleView` - Access AI messages
 - `system: RoleView` - Access system messages
 - `tools: ToolsView` - Access tool calls and returns
 - `media: MediaView` - Access media content in user messages
@@ -311,6 +488,7 @@ Provides filtered access to messages by role.
 **Methods:**
 - `all() -> list[Part]` - Get all parts for this role
 - `last() -> Part | None` - Get the most recent part
+- `first() -> Part | None` - Get the first part
 
 ### `ToolsView` Class
 
@@ -327,6 +505,10 @@ Filtered view of tool calls or returns.
 **Methods:**
 - `all() -> list[ToolCallPart | ToolReturnPart]` - Get all matching parts
 - `last() -> ToolCallPart | ToolReturnPart | None` - Get the most recent part
+- `first() -> ToolCallPart | ToolReturnPart | None` - Get the first part
+
+**Args Conversion:**
+When tool calls are accessed via `all()`, `last()`, or `first()`, the library automatically converts unparsed string args to dictionary args when possible. If a `ToolCallPart` has string-based args that contain valid JSON (non-empty after stripping), they will be converted to dictionary args using the `.args_as_dict()` method. This ensures consistent dictionary-based args for tool calls that contain valid JSON payloads, which is a minor deviation from the standard PydanticAI behavior that would leave them as strings.
 
 ### `MediaView` Class
 
@@ -335,8 +517,9 @@ Access media content from user messages (images, audio, documents, videos).
 **Methods:**
 - `all() -> list[MediaContent]` - Get all media content
 - `last() -> MediaContent | None` - Get the most recent media item
+- `first() -> MediaContent | None` - Get the first media item
 - `images(*, url_only=False, binary_only=False)` - Get image content
-- `audio(*, url_only=False, binary_only=False)` - Get audio content  
+- `audio(*, url_only=False, binary_only=False)` - Get audio content
 - `documents(*, url_only=False, binary_only=False)` - Get document content
 - `videos(*, url_only=False, binary_only=False)` - Get video content
 - `by_type(media_type)` - Get content by specific type (e.g., `ImageUrl`, `BinaryContent`)
@@ -366,7 +549,7 @@ print(f"Tool returns: {len(hist.tools.returns().all())}")
 # Get all user inputs
 user_inputs = [msg.content for msg in hist.user.all()]
 
-# Get all AI responses  
+# Get all AI responses
 ai_responses = [msg.content for msg in hist.ai.all()]
 
 # Create a simple transcript
@@ -408,7 +591,7 @@ if system_prompt:
         agent_type = "creative_writer"
     else:
         agent_type = "general_purpose"
-    
+
     print(f"Agent type: {agent_type}")
 ```
 
@@ -428,7 +611,7 @@ Found a bug? Want a feature? PRs welcome!
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Write tests (we maintain 100% coverage)
 4. Make your changes
-5. Run `make lint test` 
+5. Run `make lint test`
 6. Commit your changes (`git commit -m 'Add amazing feature'`)
 7. Push to the branch (`git push origin feature/amazing-feature`)
 8. Open a Pull Request

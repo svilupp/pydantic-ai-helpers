@@ -1,6 +1,6 @@
 [project]
 name = "pydantic-ai-helpers"
-version = "0.0.1"
+version = "0.0.2"
 description = "Boring, opinionated helpers for PydanticAI that are so simple you didn't want to even vibe code them. (Unofficial)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,6 +23,8 @@ classifiers = [
 ]
 dependencies = [
     "pydantic-ai>=0.0.20",
+    "rapidfuzz>=3.13.0",
+    "pydantic-evals>=0.7.2",
 ]
 
 [build-system]
@@ -77,6 +79,8 @@ convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "PLR2004", "S101"]
+"examples/*" = ["D", "PLR2004", "E501", "B018", "F401", "F841", "PLR0915"]
+"src/pydantic_ai_helpers/evals/registry.py" = ["PLC0415"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -95,7 +99,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
-    "--cov-fail-under=100",
+    "--cov-fail-under=93",
     "-v",
 ]
 

@@ -18,7 +18,7 @@ import json
 from collections import defaultdict
 from collections.abc import Generator, Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic_ai.messages import (
     AudioUrl,
@@ -39,7 +39,7 @@ from pydantic_ai.messages import (
 from pydantic_ai.usage import Usage
 
 if TYPE_CHECKING:
-    from pydantic_ai._result import (  # type: ignore[import-not-found]
+    from pydantic_ai._result import (
         RunResult,
         StreamedRunResult,
     )
@@ -116,7 +116,7 @@ def _iter_messages(source: Any) -> list[ModelMessage]:
 
 
 def _parts_for_role(
-    messages: list[ModelMessage], role: str
+    messages: list[ModelMessage], role: Literal["user", "ai", "system"]
 ) -> Generator[UserPromptPart | TextPart | SystemPromptPart, None, None]:
     """Yield message parts that match a logical chat role.
 
@@ -143,7 +143,7 @@ def _parts_for_role(
 
 
 def _tool_parts(
-    messages: list[ModelMessage], kind: str
+    messages: list[ModelMessage], kind: Literal["call", "return"]
 ) -> Generator[ToolCallPart | ToolReturnPart, None, None]:
     """Yield tool-related parts from messages.
 
@@ -164,6 +164,42 @@ def _tool_parts(
         for part in msg.parts:
             if isinstance(part, cls):
                 yield cast(ToolCallPart | ToolReturnPart, part)
+
+
+def _convert_tool_part_args(
+    part: ToolCallPart | ToolReturnPart,
+) -> ToolCallPart | ToolReturnPart:
+    """Convert string args to dict args for tool parts.
+
+    If a ToolCallPart has string-based args that are non-empty after stripping,
+    convert them to dict args using args_as_dict(). This ensures we only have
+    dictionary-based args when there's a valid JSON payload.
+
+    ToolReturnPart doesn't have args, so it's returned unchanged.
+
+    Parameters
+    ----------
+    part : Union[ToolCallPart, ToolReturnPart]
+        The tool part to potentially convert.
+
+    Returns
+    -------
+    Union[ToolCallPart, ToolReturnPart]
+        The original part if it's a ToolReturnPart or has dict args,
+        or a new ToolCallPart with converted args if it had string args.
+    """
+    if (
+        isinstance(part, ToolCallPart)
+        and isinstance(part.args, str)
+        and part.args.strip()
+    ):
+        # Create new ToolCallPart with converted args
+        return ToolCallPart(
+            tool_name=part.tool_name,
+            args=part.args_as_dict(),
+            tool_call_id=part.tool_call_id,
+        )
+    return part
 
 
 class RoleView:
@@ -190,7 +226,9 @@ class RoleView:
     """
 
     def __init__(self, messages: list[ModelMessage], role: str):
-        self._parts = list(_parts_for_role(messages, role))
+        self._parts = list(
+            _parts_for_role(messages, cast(Literal["user", "ai", "system"], role))
+        )
 
     def all(self) -> list[UserPromptPart | TextPart | SystemPromptPart]:
         """Get all parts for this role.
@@ -211,6 +249,16 @@ class RoleView:
             The last part, or None if no parts exist.
         """
         return self._parts[-1] if self._parts else None
+
+    def first(self) -> UserPromptPart | TextPart | SystemPromptPart | None:
+        """Get the first part for this role.
+
+        Returns
+        -------
+        Union[UserPromptPart, TextPart, SystemPromptPart, None]
+            The first part, or None if no parts exist.
+        """
+        return self._parts[0] if self._parts else None
 
 
 class ToolPartView:
@@ -246,7 +294,7 @@ class ToolPartView:
         list[Union[ToolCallPart, ToolReturnPart]]
             All matching tool parts.
         """
-        return list(self._parts)
+        return [_convert_tool_part_args(part) for part in self._parts]
 
     def last(self) -> ToolCallPart | ToolReturnPart | None:
         """Get the most recent tool part.
@@ -256,7 +304,17 @@ class ToolPartView:
         Union[ToolCallPart, ToolReturnPart, None]
             The last tool part, or None if none exist.
         """
-        return self._parts[-1] if self._parts else None
+        return _convert_tool_part_args(self._parts[-1]) if self._parts else None
+
+    def first(self) -> ToolCallPart | ToolReturnPart | None:
+        """Get the first tool part.
+
+        Returns
+        -------
+        Union[ToolCallPart, ToolReturnPart, None]
+            The first tool part, or None if none exist.
+        """
+        return _convert_tool_part_args(self._parts[0]) if self._parts else None
 
 
 class ToolsView:
@@ -390,6 +448,16 @@ class MediaView:
             The last media content, or None if no media exists.
         """
         return self._media_items[-1] if self._media_items else None
+
+    def first(self) -> MediaContent | None:
+        """Get the first media content.
+
+        Returns
+        -------
+        Union[MediaContent, None]
+            The first media content, or None if no media exists.
+        """
+        return self._media_items[0] if self._media_items else None
 
     def images(
         self, *, url_only: bool = False, binary_only: bool = False
@@ -530,7 +598,7 @@ class MediaView:
 
         return videos
 
-    def by_type(self, media_type: type) -> list[MediaContent]:
+    def by_type(self, media_type: type[MediaContent]) -> list[MediaContent]:
         """Get all media content of a specific type.
 
         Parameters
@@ -602,8 +670,7 @@ class History:
     Notes
     -----
     The History wrapper is immutable and does not modify the
-    original messages. All view objects are created lazily to
-    maintain performance.
+    original messages.
     """
 
     def __init__(
@@ -616,7 +683,7 @@ class History:
     ):
         self._messages = _iter_messages(result_or_messages)
 
-        # Create views lazily for better performance
+        # Create views eagerly for simplicity
         self.user: RoleView = RoleView(self._messages, "user")
         self.ai: RoleView = RoleView(self._messages, "ai")
         self.system: RoleView = RoleView(self._messages, "system")

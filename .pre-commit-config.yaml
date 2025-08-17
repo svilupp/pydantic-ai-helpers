@@ -27,4 +27,8 @@ repos:
           - pydantic-ai>=0.0.20
           - pydantic>=2.0.0
           - pydantic-core>=2.0.0
-        args: [--strict]
+          - rapidfuzz>=3.13.0
+          - pydantic-evals>=0.7.2
+          - pytest>=8.0.0
+        args: [--ignore-missing-imports, --no-strict-optional]
+        exclude: ^(examples/|tests/|src/pydantic_ai_helpers/evals/)

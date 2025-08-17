@@ -79,14 +79,15 @@ result = agent.run_sync("Tell me a joke")
 # Wrap once, access everything
 hist = History(result)  # or ph.History(result)
 
-# Get the last user message
-print(hist.user.last().content)
+# Get the first and last user messages
+print(hist.user.first().content)  # First user message
+print(hist.user.last().content)   # Last user message
 # Output: "Tell me a joke"
 
 # Get all AI responses
 for response in hist.ai.all():
     print(response.content)
-    
+
 # Check token usage
 print(f"Tokens used: {hist.usage().total_tokens}")
 
@@ -191,7 +192,7 @@ def media_analysis_example():
     """Example showing media content extraction."""
     # Assuming you have a conversation with media content
     hist = History(result)
-    
+
     # Access all media content
     all_media = hist.media.all()
     print(f"Found {len(all_media)} media items")
@@ -235,6 +236,238 @@ async def streaming_example():
         print(f"\nTotal tokens: {hist.usage().total_tokens}")
         print(f"Response tokens: {hist.usage().response_tokens}")
 ```
+
+## Evals Helpers
+
+Compare values and collections with simple comparators, or use evaluator classes to compare nested fields by path. **Now with powerful fuzzy string matching!**
+
+### Quick Comparators
+
+```python
+from pydantic_ai_helpers.evals import ScalarCompare, ListCompare, InclusionCompare
+
+# Scalars with coercion/tolerance
+num = ScalarCompare(coerce_to="float", abs_tol=0.01)
+print(num("3.14", 3.13))  # -> (1.0, 'numbers match')
+
+# Lists: equality / recall / precision
+eq = ListCompare(mode="equality", order_sensitive=False)
+print(eq(["a","b"], ["b","a"]))  # -> (1.0, 'lists equal')
+
+rec = ListCompare(mode="recall")
+print(rec(["a","b"], ["a","b","c"]))  # ~0.667
+
+# Inclusion with fuzzy matching (NEW!)
+inc = InclusionCompare()  # Uses defaults: normalization + fuzzy matching
+print(inc("aple", ["apple", "banana", "cherry"]))  # -> (~0.9, fuzzy match)
+```
+
+### Fuzzy String Matching (NEW!)
+
+The evaluation library now includes powerful fuzzy string matching using rapidfuzz:
+
+```python
+from pydantic_ai_helpers.evals import ScalarCompare, CompareOptions, FuzzyOptions
+
+# Default behavior: fuzzy matching enabled with 0.85 threshold
+comp = ScalarCompare()
+print(comp("colour", "color"))  # -> (0.91, 'fuzzy match (score=0.91)')
+
+# Exact matching (disable fuzzy)
+comp = ScalarCompare(fuzzy_enabled=False)
+print(comp("colour", "color"))  # -> (0.0, 'values differ...')
+
+# Custom fuzzy settings
+comp = ScalarCompare(
+    fuzzy_threshold=0.9,           # Stricter threshold
+    fuzzy_algorithm="ratio",       # Different algorithm
+    normalize_lowercase=True       # Case insensitive
+)
+
+# Lists with fuzzy matching
+list_comp = ListCompare(mode="recall")  # Fuzzy enabled by default
+score, reason = list_comp(
+    ["Python", "AI", "Machine Learning"],    # Output
+    ["python", "ai", "data science", "ml"]   # Expected
+)
+print(f"Fuzzy recall: {score:.3f} - {reason}")
+# Uses fuzzy scores: "Machine Learning" partially matches "ml"
+```
+
+### Field-to-Field Evaluators
+
+```python
+from pydantic_ai_helpers.evals import ScalarEquals, ListRecall, ListEquality, ValueInExpectedList
+from pydantic_evals.evaluators import EvaluatorContext
+
+# Basic usage (fuzzy enabled by default)
+name_eval = ScalarEquals(
+    output_path="user.name",
+    expected_path="user.name",
+    evaluation_name="name_match",
+)
+
+# Custom fuzzy settings for stricter matching
+category_eval = ScalarEquals(
+    output_path="predicted.category",
+    expected_path="actual.category",
+    fuzzy_threshold=0.95,              # Very strict
+    normalize_alphanum=True,           # Remove punctuation
+    evaluation_name="category_match",
+)
+
+# List evaluation with fuzzy matching
+tag_eval = ListRecall(
+    output_path="predicted_tags",
+    expected_path="required_tags",
+    fuzzy_enabled=True,                # Default: True
+    fuzzy_threshold=0.8,               # Lower threshold for more matches
+    normalize_lowercase=True,          # Default: True
+)
+
+# Disable fuzzy for exact matching only
+id_eval = ScalarEquals(
+    output_path="user.id",
+    expected_path="user.id",
+    fuzzy_enabled=False,               # Exact matching only
+    coerce_to="str",
+)
+
+# Example evaluation with typos
+ctx = EvaluatorContext(
+    inputs=None,
+    output={"user": {"name": "Jon Smith"}},
+    expected_output={"user": {"name": "John Smith"}}
+)
+result = name_eval.evaluate(ctx)
+print(f"Score: {result.value:.3f}, Reason: {result.reason}")
+# Output: Score: 0.889, Reason: [name_match] fuzzy match (score=0.889)
+```
+
+### Advanced Fuzzy Configuration
+
+```python
+from pydantic_ai_helpers.evals import CompareOptions, FuzzyOptions, NormalizeOptions
+
+# Structured options for complex cases
+opts = CompareOptions(
+    normalize=NormalizeOptions(
+        lowercase=True,      # Case insensitive
+        strip=True,          # Remove whitespace
+        alphanum=True,       # Keep only letters/numbers
+    ),
+    fuzzy=FuzzyOptions(
+        enabled=True,
+        threshold=0.85,                    # 85% similarity required
+        algorithm="token_set_ratio"        # Best for unordered word matching
+    )
+)
+
+evaluator = ScalarEquals(
+    output_path="description",
+    expected_path="description",
+    compare_options=opts
+)
+
+# Available fuzzy algorithms:
+# - "ratio": Character-based similarity
+# - "partial_ratio": Best substring match
+# - "token_sort_ratio": Word-based with sorting
+# - "token_set_ratio": Word-based with set logic (default)
+```
+
+### Real-world Fuzzy Matching Examples
+
+```python
+def ai_output_evaluation_example():
+    """Real-world AI output evaluation with fuzzy matching."""
+    from pydantic_ai_helpers.evals import ScalarEquals, ListRecall, ValueInExpectedList
+    from pydantic_evals.evaluators import EvaluatorContext
+
+    # AI Generated product name matching with typos
+    product_eval = ScalarEquals(
+        output_path="product_name",
+        expected_path="product_name",
+        fuzzy_threshold=0.8,     # Allow some typos
+        normalize_lowercase=True,
+        evaluation_name="product_name_match"
+    )
+
+    # Test with AI output that has typos
+    ctx = EvaluatorContext(
+        inputs=None,
+        output={"product_name": "iPhone 15 Pro Max 256GB Titanium"},
+        expected_output={"product_name": "iPhone 15 Pro Max 256 GB titanium"}
+    )
+    result = product_eval.evaluate(ctx)
+    print(f"Product name match: {result.value:.3f}")
+
+    # Tag classification with fuzzy matching
+    tag_eval = ListRecall(
+        output_path="ai_tags",
+        expected_path="human_tags",
+        fuzzy_enabled=True,      # Handle variations like "AI" vs "artificial intelligence"
+        fuzzy_threshold=0.7,     # More permissive for tags
+        normalize_strip=True,
+        evaluation_name="tag_recall"
+    )
+
+    ctx = EvaluatorContext(
+        inputs=None,
+        output={"ai_tags": ["Machine Learning", "Artificial Intelligence", "Python"]},
+        expected_output={"human_tags": ["ML", "AI", "programming", "data science"]}
+    )
+    result = tag_eval.evaluate(ctx)
+    print(f"Tag recall with fuzzy: {result.value:.3f}")
+
+    # Category validation with fuzzy fallback
+    category_eval = ValueInExpectedList(
+        output_path="ai_category",
+        expected_path="valid_categories",
+        fuzzy_threshold=0.9,     # High threshold for category validation
+        normalize_alphanum=True, # Ignore punctuation differences
+        evaluation_name="category_validation"
+    )
+
+    ctx = EvaluatorContext(
+        inputs=None,
+        output={"ai_category": "Technology & Programming"},
+        expected_output={"valid_categories": ["Technology", "Science", "Business", "Education"]}
+    )
+    result = category_eval.evaluate(ctx)
+    print(f"Category validation: {result.value:.3f}")
+
+
+def fuzzy_algorithm_comparison():
+    """Compare different fuzzy algorithms for various use cases."""
+    from pydantic_ai_helpers.evals import ScalarCompare
+
+    algorithms = ["ratio", "partial_ratio", "token_sort_ratio", "token_set_ratio"]
+    test_cases = [
+        ("New York City", "NYC"),
+        ("machine learning", "ML algorithms"),
+        ("iPhone 15 Pro", "Apple iPhone 15 Pro Max"),
+        ("data science", "Data Science & Analytics"),
+    ]
+
+    for s1, s2 in test_cases:
+        print(f"\nComparing: '{s1}' vs '{s2}'")
+        for algorithm in algorithms:
+            comp = ScalarCompare(
+                fuzzy_algorithm=algorithm,
+                normalize_lowercase=True
+            )
+            score, _ = comp(s1, s2)
+            print(f"  {algorithm:20}: {score:.3f}")
+```
+
+Notes:
+- **Fuzzy matching is enabled by default** with 0.85 threshold and `token_set_ratio` algorithm
+- `coerce_to`: "str", "int", "float", "bool", "enum" (or pass an Enum class)
+- `ListCompare.mode`: "equality", "recall", "precision"
+- Normalization defaults: `lowercase=True, strip=True, collapse_spaces=True, alphanum=False`
+- Fuzzy algorithms: "ratio", "partial_ratio", "token_sort_ratio", "token_set_ratio"
+- **Normalization always happens before fuzzy matching** for better results
 
 ### Advanced Patterns
 
@@ -328,7 +561,7 @@ The main wrapper class that provides access to all functionality.
 
 **Attributes:**
 - `user: RoleView` - Access user messages
-- `ai: RoleView` - Access AI messages  
+- `ai: RoleView` - Access AI messages
 - `system: RoleView` - Access system messages
 - `tools: ToolsView` - Access tool calls and returns
 - `media: MediaView` - Access media content in user messages
@@ -346,6 +579,7 @@ Provides filtered access to messages by role.
 **Methods:**
 - `all() -> list[Part]` - Get all parts for this role
 - `last() -> Part | None` - Get the most recent part
+- `first() -> Part | None` - Get the first part
 
 ### `ToolsView` Class
 
@@ -362,6 +596,7 @@ Filtered view of tool calls or returns.
 **Methods:**
 - `all() -> list[ToolCallPart | ToolReturnPart]` - Get all matching parts
 - `last() -> ToolCallPart | ToolReturnPart | None` - Get the most recent part
+- `first() -> ToolCallPart | ToolReturnPart | None` - Get the first part
 
 ### `MediaView` Class
 
@@ -370,8 +605,9 @@ Access media content from user messages (images, audio, documents, videos).
 **Methods:**
 - `all() -> list[MediaContent]` - Get all media content
 - `last() -> MediaContent | None` - Get the most recent media item
+- `first() -> MediaContent | None` - Get the first media item
 - `images(*, url_only=False, binary_only=False)` - Get image content
-- `audio(*, url_only=False, binary_only=False)` - Get audio content  
+- `audio(*, url_only=False, binary_only=False)` - Get audio content
 - `documents(*, url_only=False, binary_only=False)` - Get document content
 - `videos(*, url_only=False, binary_only=False)` - Get video content
 - `by_type(media_type)` - Get content by specific type (e.g., `ImageUrl`, `BinaryContent`)
@@ -401,7 +637,7 @@ print(f"Tool returns: {len(hist.tools.returns().all())}")
 # Get all user inputs
 user_inputs = [msg.content for msg in hist.user.all()]
 
-# Get all AI responses  
+# Get all AI responses
 ai_responses = [msg.content for msg in hist.ai.all()]
 
 # Create a simple transcript
@@ -427,7 +663,7 @@ Found a bug? Want a feature? PRs welcome!
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Write tests (we maintain 100% coverage)
 4. Make your changes
-5. Run `make lint test` 
+5. Run `make lint test`
 6. Commit your changes (`git commit -m 'Add amazing feature'`)
 7. Push to the branch (`git push origin feature/amazing-feature`)
 8. Open a Pull Request

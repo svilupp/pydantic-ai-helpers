@@ -140,6 +140,14 @@ class TestRoleViews:
         assert isinstance(last_user, UserPromptPart)
         assert last_user.content == "Second user message"
 
+    def test_user_view_first(self, sample_messages: list[ModelMessage]) -> None:
+        """Test getting the first user message."""
+        hist = History(sample_messages)
+        first_user = hist.user.first()
+
+        assert isinstance(first_user, UserPromptPart)
+        assert first_user.content == "First user message"
+
     def test_ai_view_all(self, sample_messages: list[ModelMessage]) -> None:
         """Test getting all AI messages."""
         hist = History(sample_messages)
@@ -158,6 +166,14 @@ class TestRoleViews:
         assert isinstance(last_ai, TextPart)
         assert last_ai.content == "Second AI response"
 
+    def test_ai_view_first(self, sample_messages: list[ModelMessage]) -> None:
+        """Test getting the first AI message."""
+        hist = History(sample_messages)
+        first_ai = hist.ai.first()
+
+        assert isinstance(first_ai, TextPart)
+        assert first_ai.content == "First AI response"
+
     def test_system_view(self, sample_messages: list[ModelMessage]) -> None:
         """Test system message access."""
         hist = History(sample_messages)
@@ -167,12 +183,27 @@ class TestRoleViews:
         assert isinstance(system_parts[0], SystemPromptPart)
         assert system_parts[0].content == "System prompt"
 
+    def test_system_view_first(self, sample_messages: list[ModelMessage]) -> None:
+        """Test getting the first system message."""
+        hist = History(sample_messages)
+        first_system = hist.system.first()
+
+        assert isinstance(first_system, SystemPromptPart)
+        assert first_system.content == "System prompt"
+
     def test_empty_role_last_returns_none(self) -> None:
         """Test that last() returns None for empty views."""
         hist = History([])
         assert hist.user.last() is None
         assert hist.ai.last() is None
         assert hist.system.last() is None
+
+    def test_empty_role_first_returns_none(self) -> None:
+        """Test that first() returns None for empty views."""
+        hist = History([])
+        assert hist.user.first() is None
+        assert hist.ai.first() is None
+        assert hist.system.first() is None
 
 
 class TestToolViews:
@@ -230,6 +261,16 @@ class TestToolViews:
         assert calls[0].tool_name == "roll_dice"
         assert calls[1].tool_name == "get_weather"
 
+    def test_tools_calls_first(self, tool_messages: list[ModelMessage]) -> None:
+        """Test getting the first tool call."""
+        hist = History(tool_messages)
+        first_call = hist.tools.calls().first()
+
+        assert first_call is not None
+        assert isinstance(first_call, ToolCallPart)
+        assert first_call.tool_name == "roll_dice"
+        assert first_call.args == {"sides": 6}
+
     def test_tools_calls_filtered(self, tool_messages: list[ModelMessage]) -> None:
         """Test filtering tool calls by name."""
         hist = History(tool_messages)
@@ -254,6 +295,16 @@ class TestToolViews:
         assert returns[0].content == "4"
         assert returns[1].content == "Rainy, 15°C"
 
+    def test_tools_returns_first(self, tool_messages: list[ModelMessage]) -> None:
+        """Test getting the first tool return."""
+        hist = History(tool_messages)
+        first_return = hist.tools.returns().first()
+
+        assert first_return is not None
+        assert isinstance(first_return, ToolReturnPart)
+        assert first_return.tool_name == "roll_dice"
+        assert first_return.content == "4"
+
     def test_tools_returns_filtered(self, tool_messages: list[ModelMessage]) -> None:
         """Test filtering tool returns by name."""
         hist = History(tool_messages)
@@ -271,6 +322,7 @@ class TestToolViews:
 
         assert hist.tools.calls(name="nonexistent").all() == []
         assert hist.tools.calls(name="nonexistent").last() is None
+        assert hist.tools.calls(name="nonexistent").first() is None
 
     def test_tool_return_metadata(self) -> None:
         """Test accessing tool return metadata."""
@@ -294,6 +346,220 @@ class TestToolViews:
         # Type narrowing for mypy
         assert isinstance(tool_return, ToolReturnPart)
         assert tool_return.metadata == {"execution_time": 1.23, "cache_hit": True}
+
+    def test_tool_call_string_args_conversion(self) -> None:
+        """Test that string args are converted to dict args."""
+        # Create tool call with string args (JSON format)
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="test_tool",
+                        args='{"param1": "value1", "param2": 42}',
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        tool_calls = hist.tools.calls().all()
+
+        assert len(tool_calls) == 1
+        tool_call = tool_calls[0]
+        assert isinstance(tool_call, ToolCallPart)
+
+        # Args should be converted to dict
+        assert isinstance(tool_call.args, dict)
+        assert tool_call.args == {"param1": "value1", "param2": 42}
+
+    def test_tool_call_string_args_conversion_last(self) -> None:
+        """Test that string args are converted in last() method."""
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="first_tool",
+                        args='{"key": "first"}',
+                        tool_call_id="call_1",
+                    ),
+                    ToolCallPart(
+                        tool_name="second_tool",
+                        args='{"key": "second", "number": 123}',
+                        tool_call_id="call_2",
+                    ),
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        last_call = hist.tools.calls().last()
+
+        assert last_call is not None
+        assert isinstance(last_call, ToolCallPart)
+        assert isinstance(last_call.args, dict)
+        assert last_call.args == {"key": "second", "number": 123}
+
+    def test_tool_call_string_args_conversion_first(self) -> None:
+        """Test that string args are converted in first() method."""
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="first_tool",
+                        args='{"key": "first", "value": 42}',
+                        tool_call_id="call_1",
+                    ),
+                    ToolCallPart(
+                        tool_name="second_tool",
+                        args='{"key": "second", "number": 123}',
+                        tool_call_id="call_2",
+                    ),
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        first_call = hist.tools.calls().first()
+
+        assert first_call is not None
+        assert isinstance(first_call, ToolCallPart)
+        assert isinstance(first_call.args, dict)
+        assert first_call.args == {"key": "first", "value": 42}
+
+    def test_tool_call_dict_args_unchanged(self) -> None:
+        """Test that dict args remain unchanged."""
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="test_tool",
+                        args={"param1": "value1", "param2": 42},
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        tool_calls = hist.tools.calls().all()
+
+        assert len(tool_calls) == 1
+        tool_call = tool_calls[0]
+        assert isinstance(tool_call, ToolCallPart)
+
+        # Args should remain as dict
+        assert isinstance(tool_call.args, dict)
+        assert tool_call.args == {"param1": "value1", "param2": 42}
+
+    def test_tool_call_empty_string_args_unchanged(self) -> None:
+        """Test that empty string args are not converted."""
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="test_tool",
+                        args="",  # Empty string
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        tool_calls = hist.tools.calls().all()
+
+        assert len(tool_calls) == 1
+        tool_call = tool_calls[0]
+        assert isinstance(tool_call, ToolCallPart)
+
+        # Empty string args should remain unchanged
+        assert isinstance(tool_call.args, str)
+        assert tool_call.args == ""
+
+    def test_tool_call_whitespace_string_args_unchanged(self) -> None:
+        """Test that whitespace-only string args are not converted."""
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="test_tool",
+                        args="   ",  # Whitespace only
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        tool_calls = hist.tools.calls().all()
+
+        assert len(tool_calls) == 1
+        tool_call = tool_calls[0]
+        assert isinstance(tool_call, ToolCallPart)
+
+        # Whitespace-only string args should remain unchanged
+        assert isinstance(tool_call.args, str)
+        assert tool_call.args == "   "
+
+    def test_tool_call_mixed_args_types(self) -> None:
+        """Test handling of mixed string and dict args in same conversation."""
+        messages = [
+            ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name="string_args_tool",
+                        args='{"converted": true, "value": 100}',
+                        tool_call_id="call_1",
+                    ),
+                    ToolCallPart(
+                        tool_name="dict_args_tool",
+                        args={"unchanged": True, "value": 200},
+                        tool_call_id="call_2",
+                    ),
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        all_calls = hist.tools.calls().all()
+
+        assert len(all_calls) == 2
+
+        # First call should have converted args
+        first_call = all_calls[0]
+        assert isinstance(first_call, ToolCallPart)
+        assert isinstance(first_call.args, dict)
+        assert first_call.args == {"converted": True, "value": 100}
+
+        # Second call should have unchanged args
+        second_call = all_calls[1]
+        assert isinstance(second_call, ToolCallPart)
+        assert isinstance(second_call.args, dict)
+        assert second_call.args == {"unchanged": True, "value": 200}
+
+    def test_tool_return_parts_unaffected(self) -> None:
+        """Test that ToolReturnPart is not affected by args conversion."""
+        messages = [
+            ModelRequest(
+                parts=[
+                    ToolReturnPart(
+                        tool_name="test_tool",
+                        content="Result content",
+                        tool_call_id="call_123",
+                    )
+                ]
+            ),
+        ]
+
+        hist = History(messages)
+        tool_returns = hist.tools.returns().all()
+
+        assert len(tool_returns) == 1
+        tool_return = tool_returns[0]
+        assert isinstance(tool_return, ToolReturnPart)
+        # ToolReturnPart doesn't have args, so no conversion should happen
+        assert not hasattr(tool_return, "args") or not tool_return.args
 
 
 class TestUsageAggregation:
@@ -535,6 +801,7 @@ class TestMediaView:
         hist = History([])
         assert hist.media.all() == []
         assert hist.media.last() is None
+        assert hist.media.first() is None
         assert hist.media.images() == []
         assert hist.media.audio() == []
         assert hist.media.documents() == []
@@ -569,6 +836,9 @@ class TestMediaView:
 
         # Test last media
         assert hist.media.last() == image_url
+
+        # Test first media
+        assert hist.media.first() == image_url
 
         # Test images
         images = hist.media.images()
@@ -659,6 +929,9 @@ class TestMediaView:
 
         # Test last media
         assert hist.media.last() == binary_audio
+
+        # Test first media
+        assert hist.media.first() == image_url
 
         # Test images
         images = hist.media.images()
