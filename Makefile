@@ -52,7 +52,7 @@ type: ## Run type checking with mypy
 
 test: ## Run tests with coverage
 	@echo "$(COLOR_YELLOW)Running tests...$(COLOR_RESET)"
-	pytest tests/ -v --cov=pydantic_ai_utils --cov-report=term-missing --cov-report=html
+	pytest tests/ -v --cov=pydantic_ai_helpers --cov-report=term-missing --cov-report=html
 	@echo "$(COLOR_GREEN)✓ Tests complete$(COLOR_RESET)"
 	@echo "Coverage report available at htmlcov/index.html"
 
@@ -63,7 +63,7 @@ test-watch: ## Run tests in watch mode
 
 coverage: ## Generate and open coverage report
 	@echo "$(COLOR_YELLOW)Generating coverage report...$(COLOR_RESET)"
-	pytest tests/ --cov=pydantic_ai_utils --cov-report=html --quiet
+	pytest tests/ --cov=pydantic_ai_helpers --cov-report=html --quiet
 	@echo "$(COLOR_GREEN)✓ Coverage report generated$(COLOR_RESET)"
 	@echo "Opening coverage report..."
 	@$(PYTHON) -m webbrowser htmlcov/index.html || open htmlcov/index.html || echo "Please open htmlcov/index.html manually"
@@ -108,11 +108,11 @@ release: ## Create a new release (use: make release VERSION=0.1.0)
 	@echo "$(COLOR_YELLOW)Creating release v$(VERSION)...$(COLOR_RESET)"
 	@echo "Updating version in pyproject.toml..."
 	@sed -i.bak 's/version = ".*"/version = "$(VERSION)"/' pyproject.toml && rm pyproject.toml.bak
-	@sed -i.bak 's/__version__ = ".*"/__version__ = "$(VERSION)"/' src/pydantic_ai_utils/__init__.py && rm src/pydantic_ai_utils/__init__.py.bak
+	@sed -i.bak 's/__version__ = ".*"/__version__ = "$(VERSION)"/' src/pydantic_ai_helpers/__init__.py && rm src/pydantic_ai_helpers/__init__.py.bak
 	@echo "Updating CHANGELOG.md..."
 	@sed -i.bak "s/\[Unreleased\]/[$(VERSION)] - $$(date +%Y-%m-%d)/" CHANGELOG.md && rm CHANGELOG.md.bak
 	@echo "Committing changes..."
-	git add pyproject.toml src/pydantic_ai_utils/__init__.py CHANGELOG.md
+	git add pyproject.toml src/pydantic_ai_helpers/__init__.py CHANGELOG.md
 	git commit -m "Release v$(VERSION)"
 	git tag -a "v$(VERSION)" -m "Release v$(VERSION)"
 	@echo "$(COLOR_GREEN)✓ Release v$(VERSION) created$(COLOR_RESET)"

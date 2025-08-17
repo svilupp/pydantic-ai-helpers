@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2025-08-17
+
+### Added
+
+- Evaluation utilities module (`pydantic_ai_helpers.evals`) with fuzzy string matching
+- Pre-built evaluators: `ScalarEquals`, `ListRecall`, `ListPrecision`, `InclusionMatch`
+- Text normalization and fuzzy matching with configurable thresholds
+- Safe dotted-path field access utilities for complex data structures (for evals)
+- History tool calls now have `.first()` method to complement existing `.last()` method
+
 ## [0.0.1] - 2025-07-06
 
 ### Added
