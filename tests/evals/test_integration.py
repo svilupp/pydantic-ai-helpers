@@ -1,7 +1,8 @@
 """Integration tests for the evals module with pydantic-evals."""
 
-import pydantic_ai_helpers.evals as phe
 from pydantic_evals import Case, Dataset
+
+import pydantic_ai_helpers.evals as phe
 
 
 def get_evaluation_result(case_result, name):

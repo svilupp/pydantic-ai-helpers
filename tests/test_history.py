@@ -5,7 +5,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock
 
-import pydantic_ai_helpers as ph
 import pytest
 from pydantic_ai.messages import (
     AudioUrl,
@@ -24,8 +23,10 @@ from pydantic_ai.messages import (
     VideoUrl,
 )
 from pydantic_ai.usage import Usage
-from pydantic_ai_helpers import History
 from pydantic_core import to_jsonable_python
+
+import pydantic_ai_helpers as ph
+from pydantic_ai_helpers import History
 
 
 class TestHistoryInit:

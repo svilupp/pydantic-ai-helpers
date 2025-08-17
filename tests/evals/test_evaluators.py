@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from unittest.mock import Mock
 
+from pydantic_evals.evaluators import EvaluationReason, EvaluatorContext
+
 from pydantic_ai_helpers.evals.compare import ScalarCompare
 from pydantic_ai_helpers.evals.evaluators import (
     CompareFields,
@@ -20,7 +22,6 @@ from pydantic_ai_helpers.evals.normalize import (
     CompareOptions,
     FuzzyOptions,
 )
-from pydantic_evals.evaluators import EvaluationReason, EvaluatorContext
 
 
 @dataclass
